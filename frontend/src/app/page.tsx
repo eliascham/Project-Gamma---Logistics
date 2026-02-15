@@ -1,0 +1,241 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { motion } from "framer-motion";
+import {
+  FileText,
+  Clock,
+  CheckCircle,
+  AlertTriangle,
+  Upload,
+  ArrowRight,
+} from "lucide-react";
+import {
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
+import { AnimatedCard } from "@/components/shared/animated-card";
+import { PageTransition } from "@/components/shared/page-transition";
+import { getDocuments } from "@/lib/api-client";
+import type { Document } from "@/types/document";
+
+const container = {
+  hidden: {},
+  show: { transition: { staggerChildren: 0.1 } },
+};
+
+const item = {
+  hidden: { opacity: 0, y: 20 },
+  show: { opacity: 1, y: 0, transition: { type: "spring", damping: 15 } },
+};
+
+const statCards = [
+  {
+    title: "Total Documents",
+    key: "total" as const,
+    icon: FileText,
+    gradient: "from-blue-500/10 to-blue-600/5",
+    iconColor: "text-blue-500",
+  },
+  {
+    title: "Pending",
+    key: "pending" as const,
+    icon: Clock,
+    gradient: "from-amber-500/10 to-amber-600/5",
+    iconColor: "text-amber-500",
+  },
+  {
+    title: "Extracted",
+    key: "extracted" as const,
+    icon: CheckCircle,
+    gradient: "from-green-500/10 to-green-600/5",
+    iconColor: "text-green-500",
+  },
+  {
+    title: "Failed",
+    key: "failed" as const,
+    icon: AlertTriangle,
+    gradient: "from-red-500/10 to-red-600/5",
+    iconColor: "text-red-500",
+  },
+];
+
+const statusVariant: Record<string, "default" | "secondary" | "destructive" | "outline"> = {
+  pending: "outline",
+  processing: "secondary",
+  extracted: "default",
+  failed: "destructive",
+};
+
+function formatRelativeTime(dateStr: string): string {
+  const date = new Date(dateStr);
+  const now = new Date();
+  const diffMs = now.getTime() - date.getTime();
+  const diffMins = Math.floor(diffMs / 60000);
+  if (diffMins < 1) return "just now";
+  if (diffMins < 60) return `${diffMins}m ago`;
+  const diffHours = Math.floor(diffMins / 60);
+  if (diffHours < 24) return `${diffHours}h ago`;
+  const diffDays = Math.floor(diffHours / 24);
+  return `${diffDays}d ago`;
+}
+
+export default function Dashboard() {
+  const router = useRouter();
+  const [stats, setStats] = useState({ total: 0, pending: 0, extracted: 0, failed: 0 });
+  const [recentDocs, setRecentDocs] = useState<Document[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    getDocuments(1, 100)
+      .then((data) => {
+        const docs = data.documents;
+        setStats({
+          total: data.total,
+          pending: docs.filter((d) => d.status === "pending" || d.status === "processing").length,
+          extracted: docs.filter((d) => d.status === "extracted").length,
+          failed: docs.filter((d) => d.status === "failed").length,
+        });
+        setRecentDocs(docs.slice(0, 5));
+      })
+      .catch(() => {})
+      .finally(() => setLoading(false));
+  }, []);
+
+  return (
+    <PageTransition>
+      <div className="space-y-8">
+        <div>
+          <h2 className="text-2xl font-bold tracking-tight">Dashboard</h2>
+          <p className="text-muted-foreground">Logistics document processing overview</p>
+        </div>
+
+        {/* Stat Cards */}
+        <motion.div
+          className="grid gap-4 md:grid-cols-2 lg:grid-cols-4"
+          variants={container}
+          initial="hidden"
+          animate="show"
+        >
+          {statCards.map((card) => {
+            const Icon = card.icon;
+            return (
+              <motion.div key={card.key} variants={item}>
+                <AnimatedCard className="relative overflow-hidden">
+                  <div className={`absolute inset-0 bg-gradient-to-br ${card.gradient}`} />
+                  <CardHeader className="relative flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-sm font-medium">{card.title}</CardTitle>
+                    <motion.div whileHover={{ rotate: 12 }} transition={{ type: "spring" }}>
+                      <Icon className={`size-4 ${card.iconColor}`} />
+                    </motion.div>
+                  </CardHeader>
+                  <CardContent className="relative">
+                    {loading ? (
+                      <Skeleton className="h-9 w-16" />
+                    ) : (
+                      <motion.div
+                        className="text-3xl font-bold"
+                        initial={{ opacity: 0, scale: 0.5 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        transition={{ type: "spring", delay: 0.2 }}
+                      >
+                        {stats[card.key]}
+                      </motion.div>
+                    )}
+                  </CardContent>
+                </AnimatedCard>
+              </motion.div>
+            );
+          })}
+        </motion.div>
+
+        <div className="grid gap-6 lg:grid-cols-2">
+          {/* Recent Documents */}
+          <AnimatedCard delay={0.3}>
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle>Recent Documents</CardTitle>
+                  <CardDescription>Latest uploads</CardDescription>
+                </div>
+                <Link href="/documents">
+                  <Button variant="ghost" size="sm">
+                    View all <ArrowRight className="ml-1 size-3" />
+                  </Button>
+                </Link>
+              </div>
+            </CardHeader>
+            <CardContent>
+              {loading ? (
+                <div className="space-y-3">
+                  {Array.from({ length: 3 }).map((_, i) => (
+                    <Skeleton key={i} className="h-10 w-full" />
+                  ))}
+                </div>
+              ) : recentDocs.length === 0 ? (
+                <p className="py-4 text-center text-sm text-muted-foreground">No documents yet</p>
+              ) : (
+                <div className="space-y-1">
+                  {recentDocs.map((doc, i) => (
+                    <motion.div
+                      key={doc.id}
+                      initial={{ opacity: 0, x: -10 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: 0.4 + i * 0.05 }}
+                      onClick={() => router.push(`/documents/${doc.id}`)}
+                      className="flex cursor-pointer items-center justify-between rounded-lg px-3 py-2.5 transition-colors hover:bg-accent/50"
+                    >
+                      <div className="flex items-center gap-3">
+                        <FileText className="size-4 text-muted-foreground" />
+                        <span className="text-sm font-medium">{doc.original_filename}</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Badge variant={statusVariant[doc.status] || "outline"} className="text-xs">
+                          {doc.status}
+                        </Badge>
+                        <span className="text-xs text-muted-foreground">
+                          {formatRelativeTime(doc.created_at)}
+                        </span>
+                      </div>
+                    </motion.div>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </AnimatedCard>
+
+          {/* Quick Actions */}
+          <AnimatedCard delay={0.4}>
+            <CardHeader>
+              <CardTitle>Quick Actions</CardTitle>
+              <CardDescription>Get started with document processing</CardDescription>
+            </CardHeader>
+            <CardContent className="flex flex-col gap-3">
+              <Link href="/documents/upload">
+                <motion.div whileHover={{ scale: 1.01 }} whileTap={{ scale: 0.99 }}>
+                  <Button className="w-full justify-start gap-2">
+                    <Upload className="size-4" /> Upload Document
+                  </Button>
+                </motion.div>
+              </Link>
+              <Link href="/documents">
+                <motion.div whileHover={{ scale: 1.01 }} whileTap={{ scale: 0.99 }}>
+                  <Button variant="outline" className="w-full justify-start gap-2">
+                    <FileText className="size-4" /> View All Documents
+                  </Button>
+                </motion.div>
+              </Link>
+            </CardContent>
+          </AnimatedCard>
+        </div>
+      </div>
+    </PageTransition>
+  );
+}

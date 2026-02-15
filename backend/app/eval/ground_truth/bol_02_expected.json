@@ -1,0 +1,43 @@
+{
+  "document_type": "bill_of_lading",
+  "extraction": {
+    "bol_number": "HLCU-BK2024092815",
+    "issue_date": "2024-09-28",
+    "carrier_name": "Hapag-Lloyd AG",
+    "carrier_scac": "HLCU",
+    "shipper": {
+      "name": "Bangkok Auto Parts Manufacturing Co.",
+      "address": "123 Soi Sukhumvit 71, Bangkok 10110, Thailand"
+    },
+    "consignee": {
+      "name": "AutoZone Regional DC",
+      "address": "5500 Distribution Center Pkwy, Savannah, GA 31407, USA"
+    },
+    "notify_party": "AutoZone Logistics Dept.",
+    "origin": {
+      "city": "Laem Chabang",
+      "state": null,
+      "country": "Thailand",
+      "port": "THLCH"
+    },
+    "destination": {
+      "city": "Savannah",
+      "state": "GA",
+      "country": "USA",
+      "port": "USSAV"
+    },
+    "vessel_name": "Hamburg Express",
+    "voyage_number": "092W",
+    "container_numbers": ["HLXU9918234"],
+    "cargo_description": "Automotive replacement brake pads and rotors",
+    "package_count": 180,
+    "gross_weight": 22000.0,
+    "weight_unit": "lbs",
+    "volume": 38.2,
+    "volume_unit": "CBM",
+    "freight_charges": 4800.0,
+    "freight_payment_type": "collect",
+    "special_instructions": "Fumigation certificate required at destination. Non-hazardous cargo.",
+    "notes": null
+  }
+}

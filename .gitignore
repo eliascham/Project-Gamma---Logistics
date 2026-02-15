@@ -1,0 +1,51 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+.venv/
+dist/
+build/
+*.egg
+
+# Node
+node_modules/
+.next/
+.turbo/
+out/
+
+# Docker
+docker-compose.override.yml
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# IDE / tools
+.vscode/
+.idea/
+.claude/
+*.swp
+*.swo
+*.sublime-*
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Uploads
+uploads/*
+!uploads/.gitkeep
+
+# Test artifacts
+*.db
+test.db
+
+# Coverage
+htmlcov/
+.coverage
+coverage/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/

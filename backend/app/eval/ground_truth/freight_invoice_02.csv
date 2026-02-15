@@ -1,0 +1,32 @@
+FREIGHT INVOICE
+
+Invoice #: INV-TRK-2024-4417
+Date: November 18, 2024
+
+FROM: Swift Hauling LLC
+2800 Interstate Drive
+Dallas, TX 75201
+
+TO: Pacific Automotive Parts Inc.
+7200 Industry Boulevard
+Los Angeles, CA 90058
+
+Shipper: Swift Hauling LLC
+Receiver: Pacific Automotive Parts Inc.
+
+Route: Dallas TX to Los Angeles CA
+Mode: FTL (Full Truckload)
+
+CHARGES:
+Linehaul - FTL 53ft Dry Van, 1 truck, $3200.00 each, $3200.00
+Fuel Surcharge (12%), 1, flat, $384.00, $384.00
+Lumper/Unloading Fee, 1, service, $175.00, $175.00
+Detention (2 hours @ $75/hr), 2, hour, $75.00, $150.00
+
+Subtotal: $3909.00
+Sales Tax: $0.00
+TOTAL: $3909.00
+
+Terms: Net 15
+BOL Reference: BOL-SW-20241115
+Notes: Temperature-sensitive automotive parts. Driver waited 2 hours at delivery dock.

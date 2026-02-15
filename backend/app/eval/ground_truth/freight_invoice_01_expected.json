@@ -1,0 +1,25 @@
+{
+  "document_type": "freight_invoice",
+  "extraction": {
+    "invoice_number": "FI-2024-00923",
+    "invoice_date": "2024-12-03",
+    "vendor_name": "Global Freight Solutions Inc.",
+    "shipper_name": "Guangzhou Manufacturing Ltd",
+    "consignee_name": "Midwest Distribution Corp",
+    "origin": "Guangzhou, China",
+    "destination": "Columbus, OH, USA",
+    "currency": "USD",
+    "line_items": [
+      {"description": "Ocean Freight (20ft Container)", "quantity": 3.0, "unit": "container", "unit_price": 2100.0, "total": 6300.0},
+      {"description": "Terminal Handling Charge", "quantity": 3.0, "unit": "container", "unit_price": 185.0, "total": 555.0},
+      {"description": "Customs Brokerage", "quantity": 1.0, "unit": "service", "unit_price": 325.0, "total": 325.0},
+      {"description": "Inland Drayage (Port to Warehouse)", "quantity": 1.0, "unit": "service", "unit_price": 1450.0, "total": 1450.0},
+      {"description": "Fuel Surcharge (6%)", "quantity": 1.0, "unit": "surcharge", "unit_price": 516.0, "total": 516.0},
+      {"description": "Insurance (0.5% of cargo value)", "quantity": 1.0, "unit": "service", "unit_price": 420.0, "total": 420.0}
+    ],
+    "subtotal": 9566.0,
+    "tax_amount": 0.0,
+    "total_amount": 9566.0,
+    "notes": "Three 20ft containers containing manufactured electronics components. All containers sealed and inspected at origin."
+  }
+}

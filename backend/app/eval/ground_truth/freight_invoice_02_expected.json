@@ -1,0 +1,23 @@
+{
+  "document_type": "freight_invoice",
+  "extraction": {
+    "invoice_number": "INV-TRK-2024-4417",
+    "invoice_date": "2024-11-18",
+    "vendor_name": "Swift Hauling LLC",
+    "shipper_name": "Swift Hauling LLC",
+    "consignee_name": "Pacific Automotive Parts Inc.",
+    "origin": "Dallas, TX",
+    "destination": "Los Angeles, CA",
+    "currency": "USD",
+    "line_items": [
+      {"description": "Linehaul - FTL 53ft Dry Van", "quantity": 1.0, "unit": "truck", "unit_price": 3200.0, "total": 3200.0},
+      {"description": "Fuel Surcharge (12%)", "quantity": 1.0, "unit": "flat", "unit_price": 384.0, "total": 384.0},
+      {"description": "Lumper/Unloading Fee", "quantity": 1.0, "unit": "service", "unit_price": 175.0, "total": 175.0},
+      {"description": "Detention (2 hours @ $75/hr)", "quantity": 2.0, "unit": "hour", "unit_price": 75.0, "total": 150.0}
+    ],
+    "subtotal": 3909.0,
+    "tax_amount": 0.0,
+    "total_amount": 3909.0,
+    "notes": "Temperature-sensitive automotive parts. Driver waited 2 hours at delivery dock."
+  }
+}

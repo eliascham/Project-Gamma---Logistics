@@ -11,6 +11,9 @@ import {
   AlertTriangle,
   Upload,
   ArrowRight,
+  DollarSign,
+  MessageSquare,
+  Database,
 } from "lucide-react";
 import {
   CardContent,
@@ -23,8 +26,9 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { AnimatedCard } from "@/components/shared/animated-card";
 import { PageTransition } from "@/components/shared/page-transition";
-import { getDocuments } from "@/lib/api-client";
+import { getDocuments, getRAGStats } from "@/lib/api-client";
 import type { Document } from "@/types/document";
+import type { RagStats } from "@/types/rag";
 
 const container = {
   hidden: {},
@@ -90,6 +94,7 @@ function formatRelativeTime(dateStr: string): string {
 export default function Dashboard() {
   const router = useRouter();
   const [stats, setStats] = useState({ total: 0, pending: 0, extracted: 0, failed: 0 });
+  const [ragStats, setRagStats] = useState<RagStats | null>(null);
   const [recentDocs, setRecentDocs] = useState<Document[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -107,6 +112,8 @@ export default function Dashboard() {
       })
       .catch(() => {})
       .finally(() => setLoading(false));
+
+    getRAGStats().then(setRagStats).catch(() => {});
   }, []);
 
   return (
@@ -225,13 +232,56 @@ export default function Dashboard() {
                   </Button>
                 </motion.div>
               </Link>
-              <Link href="/documents">
+              <Link href="/allocations">
                 <motion.div whileHover={{ scale: 1.01 }} whileTap={{ scale: 0.99 }}>
                   <Button variant="outline" className="w-full justify-start gap-2">
-                    <FileText className="size-4" /> View All Documents
+                    <DollarSign className="size-4" /> Cost Allocations
                   </Button>
                 </motion.div>
               </Link>
+              <Link href="/chat">
+                <motion.div whileHover={{ scale: 1.01 }} whileTap={{ scale: 0.99 }}>
+                  <Button variant="outline" className="w-full justify-start gap-2">
+                    <MessageSquare className="size-4" /> Ask a Question
+                  </Button>
+                </motion.div>
+              </Link>
+            </CardContent>
+          </AnimatedCard>
+
+          {/* RAG Knowledge Base */}
+          <AnimatedCard delay={0.5}>
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle>Knowledge Base</CardTitle>
+                  <CardDescription>RAG document embeddings</CardDescription>
+                </div>
+                <Link href="/chat">
+                  <Button variant="ghost" size="sm">
+                    Ask Q&A <ArrowRight className="ml-1 size-3" />
+                  </Button>
+                </Link>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-3 gap-4">
+                <div className="text-center">
+                  <Database className="size-4 mx-auto text-muted-foreground mb-1" />
+                  <div className="text-2xl font-bold">{ragStats?.total_embeddings ?? "—"}</div>
+                  <div className="text-xs text-muted-foreground">Chunks</div>
+                </div>
+                <div className="text-center">
+                  <FileText className="size-4 mx-auto text-muted-foreground mb-1" />
+                  <div className="text-2xl font-bold">{ragStats?.total_documents ?? "—"}</div>
+                  <div className="text-xs text-muted-foreground">Documents</div>
+                </div>
+                <div className="text-center">
+                  <MessageSquare className="size-4 mx-auto text-muted-foreground mb-1" />
+                  <div className="text-2xl font-bold">{ragStats?.total_queries ?? "—"}</div>
+                  <div className="text-xs text-muted-foreground">Queries</div>
+                </div>
+              </div>
             </CardContent>
           </AnimatedCard>
         </div>

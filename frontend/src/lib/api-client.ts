@@ -1,5 +1,7 @@
+import type { CostAllocation, AllocationLineItem, AllocationRule } from "@/types/allocation";
 import type { Document, DocumentListResponse, DocumentUploadResponse } from "@/types/document";
 import type { ExtractionResponse } from "@/types/extraction";
+import type { RagQueryResponse, RagStats } from "@/types/rag";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
@@ -111,4 +113,89 @@ export function uploadDocumentWithProgress(
 
 export async function getHealth() {
   return apiFetch("/health");
+}
+
+// ── Cost Allocation ──────────────────────────────────────────────
+
+export async function triggerAllocation(
+  documentId: string,
+): Promise<CostAllocation> {
+  return apiFetch<CostAllocation>(`/allocations/${documentId}`, {
+    method: "POST",
+  });
+}
+
+export async function getAllocation(
+  documentId: string,
+): Promise<CostAllocation> {
+  return apiFetch<CostAllocation>(`/allocations/${documentId}`);
+}
+
+export async function overrideLineItem(
+  lineItemId: string,
+  override: {
+    project_code?: string;
+    cost_center?: string;
+    gl_account?: string;
+  },
+): Promise<AllocationLineItem> {
+  return apiFetch<AllocationLineItem>(
+    `/allocations/line-items/${lineItemId}`,
+    {
+      method: "PUT",
+      body: JSON.stringify(override),
+    },
+  );
+}
+
+export async function approveAllocation(
+  allocationId: string,
+  action: "approved" | "rejected",
+): Promise<CostAllocation> {
+  return apiFetch<CostAllocation>(
+    `/allocations/${allocationId}/approve`,
+    {
+      method: "POST",
+      body: JSON.stringify({ action }),
+    },
+  );
+}
+
+export async function getAllocationRules(): Promise<AllocationRule[]> {
+  return apiFetch<AllocationRule[]>("/allocations/rules/list");
+}
+
+export async function seedAllocationRules(): Promise<{ message: string }> {
+  return apiFetch<{ message: string }>("/allocations/rules/seed", {
+    method: "POST",
+  });
+}
+
+// ── RAG Q&A ──────────────────────────────────────────────────────
+
+export async function askQuestion(
+  question: string,
+): Promise<RagQueryResponse> {
+  return apiFetch<RagQueryResponse>("/rag/query", {
+    method: "POST",
+    body: JSON.stringify({ question }),
+  });
+}
+
+export async function ingestDocument(
+  documentId: string,
+): Promise<{ message: string }> {
+  return apiFetch<{ message: string }>(`/rag/ingest/${documentId}`, {
+    method: "POST",
+  });
+}
+
+export async function seedRAGData(): Promise<{ message: string }> {
+  return apiFetch<{ message: string }>("/rag/ingest/seed", {
+    method: "POST",
+  });
+}
+
+export async function getRAGStats(): Promise<RagStats> {
+  return apiFetch<RagStats>("/rag/stats");
 }

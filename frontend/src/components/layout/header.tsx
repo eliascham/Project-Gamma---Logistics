@@ -7,6 +7,8 @@ const routeTitles: Record<string, string> = {
   "/": "Dashboard",
   "/documents": "Documents",
   "/documents/upload": "Upload Document",
+  "/allocations": "Cost Allocations",
+  "/chat": "Document Q&A",
 };
 
 export function Header() {
@@ -27,7 +29,7 @@ export function Header() {
           <span className="text-xs text-muted-foreground">Online</span>
         </div>
         <Badge variant="outline" className="text-xs">
-          Phase 2
+          Phase 3
         </Badge>
       </div>
     </header>

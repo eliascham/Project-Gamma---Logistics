@@ -10,6 +10,8 @@ import {
   FileSpreadsheet,
   Loader2,
   Play,
+  DollarSign,
+  Database,
 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -21,7 +23,13 @@ import { DocumentDetailSkeleton } from "@/components/shared/loading-skeleton";
 import { StatusTimeline } from "@/components/documents/status-timeline";
 import { ExtractionResultView } from "@/components/documents/extraction-result-view";
 import { useExtractionPolling } from "@/hooks/use-extraction-polling";
-import { getDocument, getExtraction, triggerExtraction } from "@/lib/api-client";
+import {
+  getDocument,
+  getExtraction,
+  triggerExtraction,
+  triggerAllocation,
+  ingestDocument,
+} from "@/lib/api-client";
 import type { Document } from "@/types/document";
 import type { ExtractionResponse } from "@/types/extraction";
 
@@ -62,6 +70,8 @@ export default function DocumentDetailPage() {
   const [extraction, setExtraction] = useState<ExtractionResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [extracting, setExtracting] = useState(false);
+  const [allocating, setAllocating] = useState(false);
+  const [ingesting, setIngesting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const { status, setStatus } = useExtractionPolling({
@@ -227,13 +237,14 @@ export default function DocumentDetailPage() {
               </Card>
             </motion.div>
 
-            {/* Run Extraction Button */}
-            {(currentStatus === "pending" || currentStatus === "failed") && (
-              <motion.div
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.2 }}
-              >
+            {/* Action Buttons */}
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2 }}
+              className="space-y-2"
+            >
+              {(currentStatus === "pending" || currentStatus === "failed") && (
                 <Button
                   onClick={handleRunExtraction}
                   disabled={extracting}
@@ -246,8 +257,64 @@ export default function DocumentDetailPage() {
                   )}
                   {extracting ? "Extracting..." : "Run Extraction"}
                 </Button>
-              </motion.div>
-            )}
+              )}
+
+              {currentStatus === "extracted" && (
+                <>
+                  <Button
+                    onClick={async () => {
+                      setAllocating(true);
+                      try {
+                        await triggerAllocation(documentId);
+                        toast.success("Allocation complete!");
+                        router.push(`/allocations/${documentId}`);
+                      } catch (err) {
+                        toast.error(
+                          err instanceof Error ? err.message : "Allocation failed"
+                        );
+                      } finally {
+                        setAllocating(false);
+                      }
+                    }}
+                    disabled={allocating}
+                    variant="outline"
+                    className="w-full gap-2"
+                  >
+                    {allocating ? (
+                      <Loader2 className="size-4 animate-spin" />
+                    ) : (
+                      <DollarSign className="size-4" />
+                    )}
+                    {allocating ? "Allocating..." : "Run Allocation"}
+                  </Button>
+                  <Button
+                    onClick={async () => {
+                      setIngesting(true);
+                      try {
+                        await ingestDocument(documentId);
+                        toast.success("Added to knowledge base!");
+                      } catch (err) {
+                        toast.error(
+                          err instanceof Error ? err.message : "Ingestion failed"
+                        );
+                      } finally {
+                        setIngesting(false);
+                      }
+                    }}
+                    disabled={ingesting}
+                    variant="outline"
+                    className="w-full gap-2"
+                  >
+                    {ingesting ? (
+                      <Loader2 className="size-4 animate-spin" />
+                    ) : (
+                      <Database className="size-4" />
+                    )}
+                    {ingesting ? "Ingesting..." : "Add to Knowledge Base"}
+                  </Button>
+                </>
+              )}
+            </motion.div>
           </div>
 
           {/* Right Column — Extraction Results */}

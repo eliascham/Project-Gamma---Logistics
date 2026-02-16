@@ -3,7 +3,14 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { motion } from "framer-motion";
-import { LayoutDashboard, FileText, Upload, Zap } from "lucide-react";
+import {
+  LayoutDashboard,
+  FileText,
+  Upload,
+  DollarSign,
+  MessageSquare,
+  Zap,
+} from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 
@@ -11,6 +18,8 @@ const navItems = [
   { href: "/", label: "Dashboard", icon: LayoutDashboard },
   { href: "/documents", label: "Documents", icon: FileText },
   { href: "/documents/upload", label: "Upload", icon: Upload },
+  { href: "/allocations", label: "Allocations", icon: DollarSign },
+  { href: "/chat", label: "Q&A Chat", icon: MessageSquare },
 ];
 
 export function Sidebar() {
@@ -59,7 +68,7 @@ export function Sidebar() {
         })}
       </nav>
       <div className="flex items-center justify-between border-t p-3">
-        <span className="text-xs text-muted-foreground">v0.2.0</span>
+        <span className="text-xs text-muted-foreground">v0.3.0</span>
         <ThemeToggle />
       </div>
     </aside>

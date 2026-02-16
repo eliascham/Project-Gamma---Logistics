@@ -22,6 +22,18 @@ class Settings(BaseSettings):
     claude_haiku_model: str = "claude-haiku-4-5-20251001"
     claude_max_tokens: int = 4096
 
+    # Voyage AI (embeddings)
+    voyage_api_key: str = ""
+    voyage_model: str = "voyage-3"
+    embedding_dimensions: int = 1024
+
+    # Cost allocation
+    allocation_confidence_threshold: float = 0.85
+
+    # RAG
+    rag_top_k: int = 5
+    rag_max_context_chars: int = 8000
+
     # File storage
     upload_dir: str = "/app/uploads"
     max_upload_size_mb: int = 50

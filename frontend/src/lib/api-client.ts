@@ -325,6 +325,26 @@ export async function seedMcpData() {
   return apiFetch("/mcp/seed", { method: "POST" });
 }
 
+export async function getMcpStats() {
+  return apiFetch("/mcp/stats");
+}
+
+export async function getMcpRecords(
+  params?: { source?: string; record_type?: string; search?: string; page?: number; per_page?: number },
+) {
+  const qs = new URLSearchParams();
+  if (params?.source) qs.set("source", params.source);
+  if (params?.record_type) qs.set("record_type", params.record_type);
+  if (params?.search) qs.set("search", params.search);
+  if (params?.page) qs.set("page", String(params.page));
+  if (params?.per_page) qs.set("per_page", String(params.per_page));
+  return apiFetch(`/mcp/records?${qs.toString()}`);
+}
+
+export async function getMcpBudgets() {
+  return apiFetch("/mcp/budgets");
+}
+
 // ── Metrics ──────────────────────────────────────────────────────
 
 export async function getMetrics() {

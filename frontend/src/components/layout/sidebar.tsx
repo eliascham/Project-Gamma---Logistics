@@ -14,6 +14,7 @@ import {
   AlertTriangle,
   GitCompare,
   Shield,
+  Database,
 } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
@@ -27,6 +28,7 @@ const navItems = [
   { href: "/reviews", label: "Review Queue", icon: ClipboardCheck },
   { href: "/anomalies", label: "Anomalies", icon: AlertTriangle },
   { href: "/reconciliation", label: "Reconciliation", icon: GitCompare },
+  { href: "/data-explorer", label: "Data Explorer", icon: Database },
   { href: "/audit", label: "Audit Log", icon: Shield },
 ];
 

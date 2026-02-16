@@ -1,13 +1,19 @@
-"""MCP server status endpoints — status, seed mock data, stats."""
+"""MCP server status endpoints — status, seed mock data, stats, browse records."""
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Query
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.dependencies import get_db
 from app.models.mock_data import MockLogisticsData, ProjectBudget
 from app.models.reconciliation import RecordSource
-from app.schemas.mcp import McpMockDataStatsResponse, McpStatusResponse
+from app.schemas.mcp import (
+    McpMockDataStatsResponse,
+    McpStatusResponse,
+    MockRecordListResponse,
+    MockRecordResponse,
+    ProjectBudgetResponse,
+)
 
 router = APIRouter()
 
@@ -74,3 +80,57 @@ async def get_mock_data_stats(
         by_record_type=by_type,
         total_budgets=total_budgets,
     )
+
+
+@router.get("/records", response_model=MockRecordListResponse)
+async def list_mock_records(
+    source: str | None = Query(None, description="Filter by data source (tms, wms, erp)"),
+    record_type: str | None = Query(None, description="Filter by record type (shipment, inventory, purchase_order, gl_entry)"),
+    search: str | None = Query(None, description="Search by reference number"),
+    page: int = 1,
+    per_page: int = 25,
+    db: AsyncSession = Depends(get_db),
+) -> MockRecordListResponse:
+    """List mock logistics data records with filtering and pagination."""
+    query = select(MockLogisticsData)
+    count_query = select(func.count(MockLogisticsData.id))
+
+    if source:
+        query = query.where(MockLogisticsData.data_source == source)
+        count_query = count_query.where(MockLogisticsData.data_source == source)
+    if record_type:
+        query = query.where(MockLogisticsData.record_type == record_type)
+        count_query = count_query.where(MockLogisticsData.record_type == record_type)
+    if search:
+        query = query.where(MockLogisticsData.reference_number.icontains(search))
+        count_query = count_query.where(MockLogisticsData.reference_number.icontains(search))
+
+    total = (await db.execute(count_query)).scalar_one()
+    offset = (page - 1) * per_page
+    rows = (await db.execute(
+        query.order_by(MockLogisticsData.created_at.desc()).offset(offset).limit(per_page)
+    )).scalars().all()
+
+    items = []
+    for r in rows:
+        items.append(MockRecordResponse(
+            id=r.id,
+            data_source=r.data_source.value if isinstance(r.data_source, RecordSource) else r.data_source,
+            record_type=r.record_type,
+            reference_number=r.reference_number,
+            data=r.data,
+            created_at=r.created_at,
+        ))
+
+    return MockRecordListResponse(items=items, total=total, page=page, per_page=per_page)
+
+
+@router.get("/budgets", response_model=list[ProjectBudgetResponse])
+async def list_project_budgets(
+    db: AsyncSession = Depends(get_db),
+) -> list[ProjectBudgetResponse]:
+    """List all project budgets."""
+    rows = (await db.execute(
+        select(ProjectBudget).order_by(ProjectBudget.project_code)
+    )).scalars().all()
+    return [ProjectBudgetResponse.model_validate(r) for r in rows]

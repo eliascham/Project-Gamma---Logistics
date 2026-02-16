@@ -36,11 +36,12 @@ Project Gamma turns logistics documents (freight invoices, bills of lading) into
 
 ### Guardrails & Production Hardening (Phase 4)
 - **Audit logging** — Immutable append-only audit trail for every action (uploads, extractions, allocations, reviews, anomalies)
-- **HITL workflow** — Human-in-the-loop review queue with auto-approve rules ($1K low-risk threshold, $10K mandatory review), approve/reject/escalate state machine
+- **HITL workflow** — Human-in-the-loop review queue with auto-approve rules ($1K low-risk threshold, $10K mandatory review), approve/reject/escalate state machine, enriched review detail with evidence panels, reviewer guidance, and one-click quick actions
 - **Anomaly detection** — Duplicate invoice detection, budget overrun alerts, low-confidence flagging, missing approval checks
 - **Reconciliation engine** — Cross-references TMS shipments vs ERP GL entries with deterministic + fuzzy matching
 - **MCP server** — Model Context Protocol server for Claude Desktop integration with 4 logistics tools (freight lanes, inventory, budgets, purchase orders)
 - **Mock data generator** — 500 shipments, 50 SKUs, 200 POs, 5 project budgets for demo and testing
+- **Data Explorer** — Tabbed UI to browse all mock logistics data (shipments, inventory, POs, GL entries, budgets) with search, pagination, and utilization bars
 - **RAG eval suite** — 10-question benchmark with hit rate, MRR, and answer accuracy metrics
 - **Structured logging** — JSON request logs with request ID tracing
 - **Sentry integration** — Optional error monitoring (conditional on `SENTRY_DSN`)
@@ -54,7 +55,7 @@ Project Gamma turns logistics documents (freight invoices, bills of lading) into
 ┌──────────────────────────────────────────────────────────────────┐
 │                       Next.js 15 Frontend                        │
 │   Dashboard · Documents · Allocations · Chat · Reviews           │
-│   Anomalies · Reconciliation · Audit Log                         │
+│   Anomalies · Reconciliation · Data Explorer · Audit Log         │
 │              (React 19, Tailwind, shadcn/ui)                     │
 └──────────────────────────┬───────────────────────────────────────┘
                            │ HTTP/REST
@@ -287,7 +288,7 @@ curl -X POST http://localhost:8000/api/v1/audit/reports \
 | `POST` | `/api/v1/audit/reports` | Generate Claude-powered audit report |
 | `GET` | `/api/v1/audit/stats` | Audit event statistics |
 | `GET` | `/api/v1/reviews/queue` | Get review queue (paginated, filterable) |
-| `GET` | `/api/v1/reviews/{id}` | Get review item details |
+| `GET` | `/api/v1/reviews/{id}` | Get review item details (enriched with evidence, guidance, quick actions) |
 | `POST` | `/api/v1/reviews/{id}/action` | Approve/reject/escalate review item |
 | `GET` | `/api/v1/reviews/stats` | Review queue statistics |
 
@@ -312,13 +313,15 @@ curl -X POST http://localhost:8000/api/v1/audit/reports \
 | `GET` | `/api/v1/reconciliation/{id}` | Get run details with records |
 | `GET` | `/api/v1/reconciliation/stats` | Reconciliation statistics |
 
-### MCP Server
+### MCP Server & Data Explorer
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
 | `GET` | `/api/v1/mcp/status` | MCP server status and available tools |
 | `POST` | `/api/v1/mcp/seed` | Seed mock data for MCP server |
 | `GET` | `/api/v1/mcp/stats` | Mock data statistics |
+| `GET` | `/api/v1/mcp/records` | Browse mock records (filterable by source, type, search) |
+| `GET` | `/api/v1/mcp/budgets` | List all project budgets |
 
 ### Other
 
@@ -348,7 +351,7 @@ project-gamma/
 │   │   │   ├── allocations.py      #   Cost allocation + overrides
 │   │   │   ├── rag.py              #   RAG Q&A + ingestion
 │   │   │   ├── audit.py            #   Audit event log + reports
-│   │   │   ├── reviews.py          #   HITL review queue
+│   │   │   ├── reviews.py          #   HITL review queue (enriched detail with context)
 │   │   │   ├── anomalies.py        #   Anomaly detection + resolution
 │   │   │   ├── reconciliation.py   #   Three-way reconciliation
 │   │   │   ├── mcp_status.py       #   MCP server status + mock data
@@ -363,7 +366,7 @@ project-gamma/
 │   │   │   ├── anomaly.py          #   AnomalyFlag + severity enums
 │   │   │   ├── reconciliation.py   #   ReconciliationRun/Record
 │   │   │   └── mock_data.py        #   MockLogisticsData, ProjectBudget
-│   │   ├── schemas/                # Pydantic request/response schemas
+│   │   ├── schemas/                # Pydantic request/response schemas (incl. ReviewItemDetailResponse with EvidenceItem, SuggestedAction, ReviewContext)
 │   │   ├── services/               # Claude API wrapper + document service
 │   │   ├── document_extractor/     # Parse → classify → extract → review
 │   │   ├── cost_allocator/         # Business rules + Claude allocation
@@ -390,6 +393,7 @@ project-gamma/
 │       │   ├── reviews/            #   HITL review queue + detail
 │       │   ├── anomalies/          #   Anomaly list + resolution
 │       │   ├── reconciliation/     #   Reconciliation runs + detail
+│       │   ├── data-explorer/      #   MCP data browser (shipments, inventory, POs, GL, budgets)
 │       │   └── audit/              #   Audit event timeline
 │       ├── components/             # React components (30+)
 │       ├── hooks/                  # Custom hooks
@@ -446,6 +450,13 @@ The human-in-the-loop system enforces review policies based on risk level:
 - Anomaly flags (duplicate invoices, budget overruns)
 - Reconciliation mismatches
 - High-value transactions above $10K threshold
+
+**Review detail experience:**
+- **Reviewer guidance** — Type-specific instructions explaining what to check (e.g., "Compare dates and amounts to determine if this is a true duplicate")
+- **Evidence panel** — Structured data from the anomaly (invoice numbers, budget amounts, confidence gaps, mismatch fields)
+- **Quick actions** — One-click buttons with pre-filled notes per anomaly type (e.g., "Confirmed Duplicate" → reject, "Budget Exception Granted" → approve)
+- **Related items** — Links to the source document and cost allocation
+- **Custom action** — Manual approve/reject/escalate with free-form notes
 
 ---
 

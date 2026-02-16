@@ -1,0 +1,36 @@
+FREIGHT INVOICE
+Invoice Number,FI-2024-00923
+Invoice Date,2025-02-10
+Due Date,2025-03-12
+
+Vendor,Global Freight Solutions Inc.
+Vendor Address,"4500 Logistics Parkway, Memphis, TN 38118"
+
+Bill To,Midwest Distribution Corp
+Shipper,Shanghai Heavy Industrial Corp
+Consignee,Midwest Distribution Corp
+
+Origin,"Shanghai, China"
+Destination,"Los Angeles, CA, USA"
+
+Currency,USD
+
+Line Items
+Description,Quantity,Unit,Unit Price,Total
+Ocean Freight (40ft HC Container),8,container,4200.00,33600.00
+Terminal Handling Charge,8,container,350.00,2800.00
+Customs Brokerage & Duties,1,service,8500.00,8500.00
+Inland Drayage (Port to Final Destination),4,trip,2200.00,8800.00
+Hazardous Materials Handling,2,service,1500.00,3000.00
+Warehousing & Storage (30 days),8,container,600.00,4800.00
+Documentation & Certificates,1,service,450.00,450.00
+Cargo Insurance (1.2% of cargo value),1,service,2750.00,2750.00
+Miscellaneous urgent handling fees,1,service,1300.00,1300.00
+
+Subtotal,66000.00
+Tax (0%),0.00
+Total Due,66000.00
+
+Payment Terms: Net 30
+Reference: PO-2025-5001
+Notes: Eight 40ft high-cube containers of industrial machinery. Oversized cargo requiring special handling. URGENT priority shipment.

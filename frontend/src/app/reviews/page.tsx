@@ -34,17 +34,19 @@ import { TableRowSkeleton } from "@/components/shared/loading-skeleton";
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
 interface ReviewStats {
-  pending: number;
+  total: number;
+  pending_review: number;
   approved: number;
   rejected: number;
   escalated: number;
+  auto_approved: number;
 }
 
 interface ReviewItem {
   id: string;
   title: string;
   entity_type: string;
-  review_type: string;
+  item_type: string | null;
   severity: string;
   status: string;
   dollar_amount: number | null;
@@ -125,7 +127,7 @@ export default function ReviewsPage() {
   const statCards = [
     {
       label: "Pending",
-      value: stats?.pending ?? 0,
+      value: stats?.pending_review ?? 0,
       icon: Clock,
       color: "text-yellow-600 dark:text-yellow-400",
     },
@@ -228,7 +230,7 @@ export default function ReviewsPage() {
                       </TableCell>
                       <TableCell>
                         <span className="rounded bg-muted px-1.5 py-0.5 text-xs font-mono uppercase">
-                          {item.review_type}
+                          {item.item_type || "unknown"}
                         </span>
                       </TableCell>
                       <TableCell>

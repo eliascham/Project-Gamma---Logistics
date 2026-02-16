@@ -4,6 +4,7 @@ Curated Q&A benchmark with expected answers and expected source documents.
 Metrics: hit rate, MRR (mean reciprocal rank), answer faithfulness (Claude self-eval).
 """
 
+import asyncio
 import logging
 import time
 import uuid
@@ -11,6 +12,9 @@ from dataclasses import dataclass, field
 
 from app.config import Settings
 from app.rag_engine.qa import QAPipeline
+
+# Voyage AI free tier: 3 RPM — wait 21s between calls to stay under limit
+DEFAULT_RATE_LIMIT_DELAY = 21
 
 logger = logging.getLogger("gamma.eval.rag")
 
@@ -125,8 +129,14 @@ class RAGEvaluator:
         self.settings = settings
         self.pipeline = QAPipeline(settings)
 
-    async def run(self, db) -> RAGEvalReport:
-        """Run the RAG evaluation benchmark."""
+    async def run(self, db, rate_limit_delay: float = DEFAULT_RATE_LIMIT_DELAY) -> RAGEvalReport:
+        """Run the RAG evaluation benchmark.
+
+        Args:
+            db: AsyncSession for database queries.
+            rate_limit_delay: Seconds to wait between questions to respect
+                Voyage AI rate limits. Set to 0 for paid plans with higher RPM.
+        """
         start = time.monotonic()
         eval_id = str(uuid.uuid4())[:8]
 
@@ -140,7 +150,17 @@ class RAGEvaluator:
         rrs = []
         answer_matches = []
 
-        for bench in RAG_BENCHMARK:
+        for i, bench in enumerate(RAG_BENCHMARK):
+            # Rate-limit: wait between questions (skip first)
+            if i > 0 and rate_limit_delay > 0:
+                logger.info(
+                    "RAG eval: waiting %.0fs for rate limit (%d/%d)...",
+                    rate_limit_delay, i + 1, len(RAG_BENCHMARK),
+                )
+                await asyncio.sleep(rate_limit_delay)
+
+            logger.info("RAG eval: question %d/%d — %s", i + 1, len(RAG_BENCHMARK), bench["question"])
+
             try:
                 result = await self.pipeline.answer(bench["question"], db)
 

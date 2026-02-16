@@ -86,6 +86,8 @@ backend/
       extraction.py      # FreightInvoice, BOL, DocumentType, ExtractionResponse
       cost_allocation.py # Allocation responses, override/approval requests
       rag.py             # RagQueryRequest/Response, SourceChunk, RagStats
+      review.py          # ReviewItemResponse, ReviewItemDetailResponse (enriched), EvidenceItem, SuggestedAction, ReviewContext
+      mcp.py             # MCP status, MockRecordResponse/ListResponse, ProjectBudgetResponse
       health.py          # Health check response
     api/v1/              # Route handlers
       health.py          # GET /api/v1/health
@@ -122,6 +124,9 @@ backend/
     hitl_workflow/       # Human-in-the-loop review queue
       service.py         # HITLService (state machine)
       triggers.py        # ReviewTriggers (pure functions)
+    # Review detail enrichment: reviews.py builds ReviewContext with evidence, guidance,
+    # suggested actions, and related entity links per anomaly type (duplicate_invoice,
+    # budget_overrun, misallocated_cost, missing_approval, reconciliation_mismatch)
     anomaly_flagger/     # Anomaly detection
       detectors.py       # Pure detection functions (no DB/Claude)
       service.py         # AnomalyFlagger orchestrator
@@ -172,7 +177,7 @@ backend/
 
 ### Phase 4 (Complete): Guardrails & Production Hardening
 - Immutable audit logging (AuditService) — every action logged with actor, entity, state diffs
-- HITL review queue — state machine (pending→approved/rejected/escalated), auto-approve rules
+- HITL review queue — state machine (pending→approved/rejected/escalated), auto-approve rules, enriched detail view with evidence/guidance/quick actions
 - Anomaly detection — duplicate invoices, budget overruns, low-confidence, missing approvals
 - Reconciliation engine — TMS vs ERP matching (deterministic + fuzzy), mismatch reports
 - MCP server — 4 logistics tools via MCP Python SDK for Claude Desktop integration
@@ -181,7 +186,7 @@ backend/
 - Structured JSON logging with request ID tracing
 - Sentry integration (optional, conditional on SENTRY_DSN)
 - Metrics endpoint — system-wide observability
-- Frontend pages: Review Queue, Anomalies, Reconciliation, Audit Log, Dashboard widgets
+- Frontend pages: Review Queue, Anomalies, Reconciliation, Audit Log, Data Explorer, Dashboard widgets
 
 ## API Endpoints
 
@@ -211,7 +216,7 @@ backend/
 - `POST /api/v1/audit/reports` — Generate Claude-powered audit report
 - `GET /api/v1/audit/stats` — Audit event statistics
 - `GET /api/v1/reviews/queue` — Get review queue (paginated, filterable)
-- `GET /api/v1/reviews/{id}` — Get review item details
+- `GET /api/v1/reviews/{id}` — Get review item details (enriched: evidence, guidance, suggested actions, related entities)
 - `POST /api/v1/reviews/{id}/action` — Approve/reject/escalate
 - `GET /api/v1/reviews/stats` — Review queue statistics
 
@@ -230,10 +235,12 @@ backend/
 - `GET /api/v1/reconciliation/{id}` — Get run with records
 - `GET /api/v1/reconciliation/stats` — Reconciliation statistics
 
-### MCP Server
+### MCP Server & Data Explorer
 - `GET /api/v1/mcp/status` — MCP server status + available tools
 - `POST /api/v1/mcp/seed` — Seed mock data
 - `GET /api/v1/mcp/stats` — Mock data statistics
+- `GET /api/v1/mcp/records` — Browse mock records (filterable by source, record_type, search; paginated)
+- `GET /api/v1/mcp/budgets` — List project budgets
 
 ### Other
 - `GET /api/v1/health` — Health check
@@ -274,4 +281,6 @@ See `.env.example` for all required variables. Key ones:
 - Anomaly scan on empty DB is safe — returns empty list
 - HITL auto-approve: both dollar_amount AND confidence must be provided for auto-approve logic
 - Reconciliation matching is reference-number-first (deterministic), then amount/date (fuzzy)
+- GET /reviews/{id} returns `ReviewItemDetailResponse` (enriched with context); POST /reviews/{id}/action returns base `ReviewItemResponse` (no context) — frontend preserves context locally after action
+- Review detail suggested actions + guidance are defined in `api/v1/reviews.py` (`_SUGGESTED_ACTIONS`, `_GUIDANCE` dicts) keyed by anomaly type
 - Structured JSON logs include request_id header (X-Request-ID) for traceability

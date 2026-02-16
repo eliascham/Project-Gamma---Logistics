@@ -282,7 +282,7 @@ export default function AuditPage() {
                                   {event.event_type}
                                 </Badge>
                                 <span className="text-xs text-muted-foreground font-mono">
-                                  {event.entity_type}/{event.entity_id.slice(0, 8)}
+                                  {event.entity_type}/{event.entity_id?.slice(0, 8) ?? "—"}
                                 </span>
                               </div>
                               <p className="mt-1.5 text-sm">

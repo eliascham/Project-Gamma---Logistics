@@ -14,6 +14,9 @@ import {
   DollarSign,
   MessageSquare,
   Database,
+  ClipboardCheck,
+  GitCompare,
+  Shield,
 } from "lucide-react";
 import {
   CardContent,
@@ -97,6 +100,11 @@ export default function Dashboard() {
   const [ragStats, setRagStats] = useState<RagStats | null>(null);
   const [recentDocs, setRecentDocs] = useState<Document[]>([]);
   const [loading, setLoading] = useState(true);
+  const [reviewStats, setReviewStats] = useState<{ pending_review: number; total: number } | null>(null);
+  const [anomalyStats, setAnomalyStats] = useState<{ unresolved: number; total: number } | null>(null);
+  const [reconStats, setReconStats] = useState<{ avg_match_rate: number | null; total_runs: number } | null>(null);
+
+  const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
   useEffect(() => {
     getDocuments(1, 100)
@@ -114,6 +122,11 @@ export default function Dashboard() {
       .finally(() => setLoading(false));
 
     getRAGStats().then(setRagStats).catch(() => {});
+
+    // Phase 4 stats
+    fetch(`${API_BASE}/api/v1/reviews/stats`).then(r => r.json()).then(setReviewStats).catch(() => {});
+    fetch(`${API_BASE}/api/v1/anomalies/stats`).then(r => r.json()).then(setAnomalyStats).catch(() => {});
+    fetch(`${API_BASE}/api/v1/reconciliation/stats`).then(r => r.json()).then(setReconStats).catch(() => {});
   }, []);
 
   return (
@@ -284,6 +297,70 @@ export default function Dashboard() {
               </div>
             </CardContent>
           </AnimatedCard>
+        </div>
+
+        {/* Phase 4: Guardrails Widgets */}
+        <div>
+          <h3 className="mb-4 text-lg font-semibold">Guardrails & Operations</h3>
+          <div className="grid gap-4 md:grid-cols-3">
+            <AnimatedCard delay={0.6}>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Review Queue</CardTitle>
+                <ClipboardCheck className="size-4 text-amber-500" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{reviewStats?.pending_review ?? "—"}</div>
+                <p className="text-xs text-muted-foreground">
+                  pending reviews of {reviewStats?.total ?? 0} total
+                </p>
+                <Link href="/reviews">
+                  <Button variant="ghost" size="sm" className="mt-2 p-0 text-xs">
+                    View queue <ArrowRight className="ml-1 size-3" />
+                  </Button>
+                </Link>
+              </CardContent>
+            </AnimatedCard>
+
+            <AnimatedCard delay={0.7}>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Active Anomalies</CardTitle>
+                <AlertTriangle className="size-4 text-orange-500" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{anomalyStats?.unresolved ?? "—"}</div>
+                <p className="text-xs text-muted-foreground">
+                  unresolved of {anomalyStats?.total ?? 0} total
+                </p>
+                <Link href="/anomalies">
+                  <Button variant="ghost" size="sm" className="mt-2 p-0 text-xs">
+                    View anomalies <ArrowRight className="ml-1 size-3" />
+                  </Button>
+                </Link>
+              </CardContent>
+            </AnimatedCard>
+
+            <AnimatedCard delay={0.8}>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Reconciliation</CardTitle>
+                <GitCompare className="size-4 text-blue-500" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">
+                  {reconStats?.avg_match_rate != null
+                    ? `${(reconStats.avg_match_rate * 100).toFixed(0)}%`
+                    : "—"}
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  avg match rate ({reconStats?.total_runs ?? 0} runs)
+                </p>
+                <Link href="/reconciliation">
+                  <Button variant="ghost" size="sm" className="mt-2 p-0 text-xs">
+                    View runs <ArrowRight className="ml-1 size-3" />
+                  </Button>
+                </Link>
+              </CardContent>
+            </AnimatedCard>
+          </div>
         </div>
       </div>
     </PageTransition>

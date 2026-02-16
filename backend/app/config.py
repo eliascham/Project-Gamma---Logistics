@@ -41,5 +41,19 @@ class Settings(BaseSettings):
     # Allowed file types for upload
     allowed_file_types: set[str] = {"pdf", "png", "jpg", "jpeg", "tiff", "tif", "csv"}
 
+    # HITL workflow
+    hitl_auto_approve_dollar_threshold: float = 1000.0
+    hitl_high_risk_dollar_threshold: float = 10000.0
+
+    # Anomaly detection
+    anomaly_budget_overrun_threshold: float = 0.1
+    anomaly_duplicate_window_days: int = 90
+
+    # MCP server
+    mcp_server_port: int = 3001
+
+    # Sentry (optional)
+    sentry_dsn: str = ""
+
 
 settings = Settings()

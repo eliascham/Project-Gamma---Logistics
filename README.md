@@ -33,6 +33,18 @@ Project Gamma turns logistics documents (freight invoices, bills of lading) into
 - **Cited answers** — Claude answers with `[Source N]` citations linking back to source chunks
 - **Knowledge base** — Ingest extractions and standard operating procedures for searchable Q&A
 
+### Guardrails & Production Hardening (Phase 4)
+- **Audit logging** — Immutable append-only audit trail for every action (uploads, extractions, allocations, reviews, anomalies)
+- **HITL workflow** — Human-in-the-loop review queue with auto-approve rules ($1K low-risk threshold, $10K mandatory review), approve/reject/escalate state machine
+- **Anomaly detection** — Duplicate invoice detection, budget overrun alerts, low-confidence flagging, missing approval checks
+- **Reconciliation engine** — Cross-references TMS shipments vs ERP GL entries with deterministic + fuzzy matching
+- **MCP server** — Model Context Protocol server for Claude Desktop integration with 4 logistics tools (freight lanes, inventory, budgets, purchase orders)
+- **Mock data generator** — 500 shipments, 50 SKUs, 200 POs, 5 project budgets for demo and testing
+- **RAG eval suite** — 10-question benchmark with hit rate, MRR, and answer accuracy metrics
+- **Structured logging** — JSON request logs with request ID tracing
+- **Sentry integration** — Optional error monitoring (conditional on `SENTRY_DSN`)
+- **Metrics endpoint** — System-wide metrics (eval scores, HITL stats, anomaly counts)
+
 ---
 
 ## Architecture
@@ -125,6 +137,9 @@ curl -X POST http://localhost:8000/api/v1/allocations/rules/seed
 
 # Seed sample SOPs for RAG
 curl -X POST http://localhost:8000/api/v1/rag/ingest/seed
+
+# Seed mock logistics data (MCP server + reconciliation)
+curl -X POST http://localhost:8000/api/v1/mcp/seed
 ```
 
 ### 5. Open the app
@@ -203,12 +218,54 @@ curl -X POST http://localhost:8000/api/v1/rag/query \
 | `POST` | `/api/v1/rag/ingest/seed` | Seed sample SOPs |
 | `GET` | `/api/v1/rag/stats` | Knowledge base statistics |
 
+### Audit & Reviews
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `GET` | `/api/v1/audit/events` | List audit events (paginated, filterable) |
+| `POST` | `/api/v1/audit/reports` | Generate Claude-powered audit report |
+| `GET` | `/api/v1/audit/stats` | Audit event statistics |
+| `GET` | `/api/v1/reviews/queue` | Get review queue (paginated, filterable) |
+| `GET` | `/api/v1/reviews/{id}` | Get review item details |
+| `POST` | `/api/v1/reviews/{id}/action` | Approve/reject/escalate review item |
+| `GET` | `/api/v1/reviews/stats` | Review queue statistics |
+
+### Anomaly Detection
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `POST` | `/api/v1/anomalies/scan` | Run anomaly detection scan |
+| `GET` | `/api/v1/anomalies/list` | List anomaly flags (filterable) |
+| `GET` | `/api/v1/anomalies/{id}` | Get anomaly details |
+| `POST` | `/api/v1/anomalies/{id}/resolve` | Resolve an anomaly |
+| `GET` | `/api/v1/anomalies/stats` | Anomaly statistics |
+| `POST` | `/api/v1/anomalies/audit-summary` | Claude-powered anomaly audit summary |
+
+### Reconciliation
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `POST` | `/api/v1/reconciliation/run` | Run TMS/ERP reconciliation |
+| `POST` | `/api/v1/reconciliation/seed` | Seed mock logistics data |
+| `GET` | `/api/v1/reconciliation/runs` | List reconciliation runs |
+| `GET` | `/api/v1/reconciliation/{id}` | Get run details with records |
+| `GET` | `/api/v1/reconciliation/stats` | Reconciliation statistics |
+
+### MCP Server
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `GET` | `/api/v1/mcp/status` | MCP server status and available tools |
+| `POST` | `/api/v1/mcp/seed` | Seed mock data for MCP server |
+| `GET` | `/api/v1/mcp/stats` | Mock data statistics |
+
 ### Other
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
 | `GET` | `/api/v1/health` | Health check (DB + Redis) |
-| `POST` | `/api/v1/eval/run` | Run extraction accuracy eval |
+| `GET` | `/api/v1/metrics` | System metrics (eval, HITL, anomalies) |
+| `POST` | `/api/v1/eval/run` | Run eval (extraction or RAG) |
 | `GET` | `/api/v1/eval/results` | List eval runs |
 
 ---
@@ -369,13 +426,44 @@ cd backend && python -m pytest tests/ -v
 cd frontend && pnpm test
 ```
 
-### Run extraction eval suite
+### Run eval suites
 
 ```bash
+# Extraction accuracy eval
 curl -X POST http://localhost:8000/api/v1/eval/run
+
+# RAG retrieval quality eval
+curl -X POST "http://localhost:8000/api/v1/eval/run?eval_type=rag"
 ```
 
-Evaluates extraction accuracy against 4 ground truth documents, computing field-level precision, recall, and F1.
+### MCP Server (Claude Desktop)
+
+The MCP server exposes logistics data tools for Claude Desktop integration.
+
+```bash
+# From the backend directory:
+python -m app.mcp_server
+```
+
+Add to Claude Desktop config (`claude_desktop_config.json`):
+
+```json
+{
+  "mcpServers": {
+    "project-gamma": {
+      "command": "python",
+      "args": ["-m", "app.mcp_server"],
+      "cwd": "/path/to/backend"
+    }
+  }
+}
+```
+
+Available tools:
+- `query_freight_lanes` — Search shipments by origin/destination/carrier
+- `get_warehouse_inventory` — Query inventory across facilities
+- `lookup_project_budget` — Check project budget utilization
+- `search_purchase_orders` — Search POs by number/vendor/status
 
 ---
 
@@ -392,6 +480,10 @@ Evaluates extraction accuracy against 4 ground truth documents, computing field-
 | `VOYAGE_MODEL` | No | `voyage-3` | Embedding model |
 | `EMBEDDING_DIMENSIONS` | No | `1024` | Vector dimensions |
 | `ALLOCATION_CONFIDENCE_THRESHOLD` | No | `0.85` | Auto-approve threshold |
+| `HITL_AUTO_APPROVE_DOLLAR_THRESHOLD` | No | `1000` | Auto-approve below this amount |
+| `HITL_HIGH_RISK_DOLLAR_THRESHOLD` | No | `10000` | Mandatory review above this |
+| `ANOMALY_BUDGET_OVERRUN_THRESHOLD` | No | `0.1` | Budget overrun alert threshold |
+| `SENTRY_DSN` | No | — | Sentry error monitoring DSN |
 | `ENVIRONMENT` | No | `development` | Runtime environment |
 | `LOG_LEVEL` | No | `INFO` | Logging verbosity |
 
@@ -402,7 +494,7 @@ Evaluates extraction accuracy against 4 ground truth documents, computing field-
 - [x] **Phase 1** — Foundation (Docker, FastAPI, PostgreSQL, basic extraction, Next.js skeleton)
 - [x] **Phase 2** — Document Intelligence (multi-format parsing, classification, 2-pass extraction, eval suite)
 - [x] **Phase 3** — Cost Allocation & RAG (business rules, confidence scoring, Voyage AI embeddings, Q&A with citations)
-- [ ] **Phase 4** — Guardrails & Production Hardening (anomaly detection, audit trails, reconciliation, HITL workflow, MCP server)
+- [x] **Phase 4** — Guardrails & Production Hardening (audit logging, HITL workflow, anomaly detection, reconciliation, MCP server, eval improvements, monitoring)
 
 ---
 

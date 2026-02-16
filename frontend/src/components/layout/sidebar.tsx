@@ -10,6 +10,10 @@ import {
   DollarSign,
   MessageSquare,
   Zap,
+  ClipboardCheck,
+  AlertTriangle,
+  GitCompare,
+  Shield,
 } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
@@ -20,6 +24,10 @@ const navItems = [
   { href: "/documents/upload", label: "Upload", icon: Upload },
   { href: "/allocations", label: "Allocations", icon: DollarSign },
   { href: "/chat", label: "Q&A Chat", icon: MessageSquare },
+  { href: "/reviews", label: "Review Queue", icon: ClipboardCheck },
+  { href: "/anomalies", label: "Anomalies", icon: AlertTriangle },
+  { href: "/reconciliation", label: "Reconciliation", icon: GitCompare },
+  { href: "/audit", label: "Audit Log", icon: Shield },
 ];
 
 export function Sidebar() {
@@ -34,7 +42,7 @@ export function Sidebar() {
         <span className="font-semibold tracking-tight">Project Gamma</span>
       </div>
       <Separator />
-      <nav className="flex-1 space-y-1 p-3">
+      <nav className="flex-1 space-y-1 overflow-y-auto p-3">
         {navItems.map((item) => {
           const isActive =
             item.href === "/"
@@ -68,7 +76,7 @@ export function Sidebar() {
         })}
       </nav>
       <div className="flex items-center justify-between border-t p-3">
-        <span className="text-xs text-muted-foreground">v0.3.0</span>
+        <span className="text-xs text-muted-foreground">v0.4.0</span>
         <ThemeToggle />
       </div>
     </aside>

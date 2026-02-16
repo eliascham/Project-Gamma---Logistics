@@ -7,6 +7,8 @@ from httpx import ASGITransport, AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
 from app.models.base import Base
+# Import all models so they register with Base.metadata for create_all
+import app.models  # noqa: F401
 
 # Use SQLite for tests (no Postgres dependency needed for unit tests)
 TEST_DATABASE_URL = "sqlite+aiosqlite:///./test.db"

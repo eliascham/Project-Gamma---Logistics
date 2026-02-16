@@ -19,13 +19,51 @@ router = APIRouter()
 
 @router.post("/run")
 async def run_eval(
+    eval_type: str = "extraction",
     db: AsyncSession = Depends(get_db),
 ):
-    """Run the extraction eval suite against ground truth documents.
+    """Run an eval suite against ground truth documents.
 
-    This calls Claude for each ground truth document (2 passes each),
-    so it may take a few minutes depending on document count.
+    Args:
+        eval_type: "extraction" (default) or "rag"
     """
+    if eval_type == "rag":
+        from app.eval.rag_eval import RAGEvaluator
+        evaluator = RAGEvaluator(settings)
+        try:
+            report = await evaluator.run(db)
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"RAG eval failed: {e}")
+
+        eval_id = uuid.uuid4()
+        await db.execute(
+            sa_text("""
+                INSERT INTO eval_results (
+                    id, eval_type, results, document_count,
+                    overall_accuracy, field_scores, model_used, created_at
+                ) VALUES (
+                    :id, :eval_type, CAST(:results AS json), :document_count,
+                    :overall_accuracy, CAST(:field_scores AS json), :model_used, NOW()
+                )
+            """),
+            {
+                "id": eval_id,
+                "eval_type": "rag",
+                "results": json.dumps(report.to_dict(), default=str),
+                "document_count": report.total_questions,
+                "overall_accuracy": report.hit_rate,
+                "field_scores": json.dumps({
+                    "hit_rate": report.hit_rate,
+                    "mrr": report.mrr,
+                    "answer_accuracy": report.answer_accuracy,
+                }),
+                "model_used": report.model_used,
+            },
+        )
+        await db.flush()
+        return report.to_dict()
+
+    # Default: extraction eval
     evaluator = ExtractionEvaluator(settings)
 
     try:
@@ -33,7 +71,6 @@ async def run_eval(
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Eval failed: {e}")
 
-    # Store results in eval_results table
     eval_id = uuid.uuid4()
     await db.execute(
         sa_text("""

@@ -94,6 +94,17 @@ async def extract_document(
     document.status = DocumentStatus.PROCESSING
     await db.flush()
 
+    from app.audit_generator.service import AuditService
+    await AuditService.log_event(
+        db,
+        event_type="EXTRACTION_STARTED",
+        entity_type="document",
+        entity_id=document.id,
+        action="extraction_start",
+        actor="system",
+        actor_type="ai",
+    )
+
     # Run the extraction pipeline
     try:
         extraction_result = await pipeline.run(
@@ -161,6 +172,21 @@ async def extract_document(
         },
     )
     await db.flush()
+
+    await AuditService.log_event(
+        db,
+        event_type="EXTRACTION_COMPLETED",
+        entity_type="document",
+        entity_id=document.id,
+        action="extraction_complete",
+        actor="system",
+        actor_type="ai",
+        model_used=extraction_result.model_used,
+        new_state={
+            "document_type": extraction_result.document_type.value,
+            "processing_time_ms": extraction_result.processing_time_ms,
+        },
+    )
 
     return ExtractionResponse(
         document_id=document.id,

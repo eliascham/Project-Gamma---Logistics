@@ -32,6 +32,21 @@ curl -X POST http://localhost:8000/api/v1/allocations/{document_id}
 
 # Ask a question via RAG
 curl -X POST http://localhost:8000/api/v1/rag/query -H "Content-Type: application/json" -d '{"question": "What GL account is used for ocean freight?"}'
+
+# Seed mock data (MCP server + reconciliation)
+curl -X POST http://localhost:8000/api/v1/mcp/seed
+
+# Run anomaly scan
+curl -X POST http://localhost:8000/api/v1/anomalies/scan -H "Content-Type: application/json" -d '{}'
+
+# Run reconciliation
+curl -X POST http://localhost:8000/api/v1/reconciliation/run -H "Content-Type: application/json" -d '{"run_by": "user"}'
+
+# Run MCP server (for Claude Desktop)
+cd backend && python -m app.mcp_server
+
+# Run RAG eval
+curl -X POST "http://localhost:8000/api/v1/eval/run?eval_type=rag"
 ```
 
 ## Architecture
@@ -46,7 +61,7 @@ curl -X POST http://localhost:8000/api/v1/rag/query -H "Content-Type: applicatio
 
 - **Async everywhere:** asyncpg + SQLAlchemy async + AsyncAnthropic
 - **Service layer:** business logic in `services/`, `document_extractor/`, `cost_allocator/`, `rag_engine/` — route handlers only do HTTP
-- **Dependency injection:** `get_db()`, `get_claude_service()`, `get_cost_allocation_pipeline()`, `get_qa_pipeline()`, `get_rag_ingestor()` — all overridable in tests
+- **Dependency injection:** `get_db()`, `get_claude_service()`, `get_cost_allocation_pipeline()`, `get_qa_pipeline()`, `get_rag_ingestor()`, `get_hitl_service()`, `get_anomaly_flagger()`, `get_reconciliation_engine()`, `get_audit_report_generator()` — all overridable in tests
 - **SQLAlchemy enums:** Use `values_callable=lambda e: [member.value for member in e]` to send lowercase values to Postgres
 - **Tests use SQLite:** No Postgres needed for unit tests (via aiosqlite). Mock pgvector queries + Voyage AI.
 - **Phase 1 integration tests** need asyncpg — run in Docker or install asyncpg locally
@@ -95,21 +110,41 @@ backend/
       retriever.py       # pgvector cosine similarity search
       qa.py              # QAPipeline (retrieve → Claude answers with citations)
       ingest.py          # RAGIngestor (extractions + sample SOPs)
-    eval/                # Extraction accuracy evaluation
+    eval/                # Extraction + RAG accuracy evaluation
       metrics.py         # Field-level accuracy (precision/recall/F1)
       extraction_eval.py # Eval harness (runs pipeline against ground truth)
+      rag_eval.py        # RAG retrieval quality eval (hit rate, MRR)
       ground_truth/      # Sample documents + expected JSON outputs
-    middleware/logging.py# Request logging
-    # Placeholder modules for Phase 4+:
-    anomaly_flagger/ audit_generator/ reconciliation_engine/
-    hitl_workflow/ mcp_server/
+    middleware/logging.py# Structured JSON request logging with request ID
+    audit_generator/     # Audit logging + report generation
+      service.py         # AuditService (static, append-only log)
+      report_generator.py# Claude-powered audit report summaries
+    hitl_workflow/       # Human-in-the-loop review queue
+      service.py         # HITLService (state machine)
+      triggers.py        # ReviewTriggers (pure functions)
+    anomaly_flagger/     # Anomaly detection
+      detectors.py       # Pure detection functions (no DB/Claude)
+      service.py         # AnomalyFlagger orchestrator
+    reconciliation_engine/ # Cross-system reconciliation
+      matchers.py        # Pure matching functions
+      service.py         # ReconciliationEngine
+    mcp_server/          # MCP server for Claude Desktop
+      server.py          # LogisticsMCPServer (4 tools)
+      data_layer.py      # MCPDataLayer (DB queries)
+      mock_data.py       # MockDataGenerator (deterministic)
+      __main__.py        # Entry point: python -m app.mcp_server
   tests/
     test_cost_allocation.py  # Cost allocation pipeline + rules tests
     test_rag.py              # Chunker, extraction_to_text, QA pipeline tests
-  alembic/versions/      # 001_initial + 002_doc_intelligence + 003_cost_allocation_rag
+    test_audit.py            # AuditService log/query, stats tests
+    test_hitl.py             # HITL state machine, triggers, auto-approve tests
+    test_anomaly.py          # Pure detector functions, anomaly flagging tests
+    test_reconciliation.py   # Matcher functions, reconciliation engine tests
+    test_mcp.py              # MockDataGenerator determinism, data layer tests
+  alembic/versions/      # 001_initial + 002_doc_intelligence + 003_cost_allocation_rag + 004_guardrails
 ```
 
-## Current Phase: 3 Complete — Next: Phase 4 (Guardrails & Production Hardening)
+## Current Phase: 4 Complete
 
 ### Phase 1 (Complete): Foundation
 - Project scaffold, Docker Compose, FastAPI skeleton
@@ -135,7 +170,18 @@ backend/
 - Chat-style Q&A frontend with source citations and example question chips
 - Allocations list/detail pages with confidence bars and inline editing
 
-### Phase 4 (Future): Guardrails & Production Hardening
+### Phase 4 (Complete): Guardrails & Production Hardening
+- Immutable audit logging (AuditService) — every action logged with actor, entity, state diffs
+- HITL review queue — state machine (pending→approved/rejected/escalated), auto-approve rules
+- Anomaly detection — duplicate invoices, budget overruns, low-confidence, missing approvals
+- Reconciliation engine — TMS vs ERP matching (deterministic + fuzzy), mismatch reports
+- MCP server — 4 logistics tools via MCP Python SDK for Claude Desktop integration
+- Mock data generator — 500 shipments, 50 SKUs, 200 POs, 5 project budgets
+- RAG eval suite — 10-question benchmark with hit rate, MRR, answer accuracy
+- Structured JSON logging with request ID tracing
+- Sentry integration (optional, conditional on SENTRY_DSN)
+- Metrics endpoint — system-wide observability
+- Frontend pages: Review Queue, Anomalies, Reconciliation, Audit Log, Dashboard widgets
 
 ## API Endpoints
 
@@ -160,9 +206,39 @@ backend/
 - `POST /api/v1/rag/ingest/seed` — Seed sample SOPs
 - `GET /api/v1/rag/stats` — Knowledge base statistics
 
+### Audit & Reviews
+- `GET /api/v1/audit/events` — List audit events (paginated, filterable)
+- `POST /api/v1/audit/reports` — Generate Claude-powered audit report
+- `GET /api/v1/audit/stats` — Audit event statistics
+- `GET /api/v1/reviews/queue` — Get review queue (paginated, filterable)
+- `GET /api/v1/reviews/{id}` — Get review item details
+- `POST /api/v1/reviews/{id}/action` — Approve/reject/escalate
+- `GET /api/v1/reviews/stats` — Review queue statistics
+
+### Anomaly Detection
+- `POST /api/v1/anomalies/scan` — Run anomaly detection
+- `GET /api/v1/anomalies/list` — List anomaly flags
+- `GET /api/v1/anomalies/{id}` — Get anomaly details
+- `POST /api/v1/anomalies/{id}/resolve` — Resolve anomaly
+- `GET /api/v1/anomalies/stats` — Anomaly statistics
+- `POST /api/v1/anomalies/audit-summary` — Claude-powered anomaly audit summary
+
+### Reconciliation
+- `POST /api/v1/reconciliation/run` — Run TMS/ERP reconciliation
+- `POST /api/v1/reconciliation/seed` — Seed mock logistics data
+- `GET /api/v1/reconciliation/runs` — List reconciliation runs
+- `GET /api/v1/reconciliation/{id}` — Get run with records
+- `GET /api/v1/reconciliation/stats` — Reconciliation statistics
+
+### MCP Server
+- `GET /api/v1/mcp/status` — MCP server status + available tools
+- `POST /api/v1/mcp/seed` — Seed mock data
+- `GET /api/v1/mcp/stats` — Mock data statistics
+
 ### Other
 - `GET /api/v1/health` — Health check
-- `POST /api/v1/eval/run` — Run eval suite
+- `GET /api/v1/metrics` — System metrics (eval, HITL, anomalies)
+- `POST /api/v1/eval/run` — Run eval suite (extraction or RAG via eval_type param)
 
 ## Environment Variables (.env)
 
@@ -173,6 +249,12 @@ See `.env.example` for all required variables. Key ones:
 - `REDIS_URL` — Redis connection string
 - `VOYAGE_API_KEY` — required for RAG embeddings (Voyage AI)
 - `ALLOCATION_CONFIDENCE_THRESHOLD` — default: 0.85
+- `HITL_AUTO_APPROVE_DOLLAR_THRESHOLD` — default: 1000 (auto-approve below this)
+- `HITL_HIGH_RISK_DOLLAR_THRESHOLD` — default: 10000 (mandatory review above this)
+- `ANOMALY_BUDGET_OVERRUN_THRESHOLD` — default: 0.1 (10% over budget triggers alert)
+- `ANOMALY_DUPLICATE_WINDOW_DAYS` — default: 90
+- `MCP_SERVER_PORT` — default: 3001
+- `SENTRY_DSN` — optional, leave empty to disable Sentry
 
 ## Known Issues / Gotchas
 
@@ -187,3 +269,9 @@ See `.env.example` for all required variables. Key ones:
 - Raw SQL with asyncpg: use `CAST(:param AS vector)` not `:param::vector` (conflicts with named params)
 - FastAPI route ordering: static routes (`/rules/seed`) must come before parameterized routes (`/{document_id}`)
 - Voyage AI free tier: 3 RPM without payment method — can hit rate limits during bulk ingestion
+- ReviewItem.review_metadata maps to DB column "metadata" (SQLAlchemy reserved name)
+- MCP server runs as separate process (own engine), not inside FastAPI
+- Anomaly scan on empty DB is safe — returns empty list
+- HITL auto-approve: both dollar_amount AND confidence must be provided for auto-approve logic
+- Reconciliation matching is reference-number-first (deterministic), then amount/date (fuzzy)
+- Structured JSON logs include request_id header (X-Request-ID) for traceability

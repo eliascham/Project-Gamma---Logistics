@@ -59,6 +59,22 @@ async def query_documents(
     db.add(rag_query)
     await db.flush()
 
+    from app.audit_generator.service import AuditService
+    await AuditService.log_event(
+        db,
+        event_type="RAG_QUERY",
+        entity_type="rag_query",
+        entity_id=query_id,
+        action="query",
+        actor="user",
+        actor_type="user",
+        new_state={
+            "question": request.question,
+            "sources_count": len(sources),
+            "model_used": result.model_used,
+        },
+    )
+
     return RagQueryResponse(
         id=query_id,
         question=request.question,

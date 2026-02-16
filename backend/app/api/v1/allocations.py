@@ -26,6 +26,7 @@ from app.models.cost_allocation import (
     LineItemStatus,
 )
 from app.models.document import Document, DocumentStatus
+from app.audit_generator.service import AuditService
 from app.schemas.cost_allocation import (
     AllocationApprovalRequest,
     AllocationLineItemResponse,
@@ -82,6 +83,21 @@ async def override_line_item(
     line_item.overridden_by = "user"
     line_item.overridden_at = datetime.now(timezone.utc)
     await db.flush()
+
+    await AuditService.log_event(
+        db,
+        event_type="LINE_ITEM_OVERRIDDEN",
+        entity_type="allocation_line_item",
+        entity_id=line_item.id,
+        action="override",
+        actor="user",
+        actor_type="user",
+        new_state={
+            "project_code": override.project_code,
+            "cost_center": override.cost_center,
+            "gl_account": override.gl_account,
+        },
+    )
 
     return AllocationLineItemResponse.model_validate(line_item)
 
@@ -180,6 +196,22 @@ async def run_allocation(
     )
     allocation = result.scalar_one()
 
+    await AuditService.log_event(
+        db,
+        event_type="ALLOCATION_CREATED",
+        entity_type="cost_allocation",
+        entity_id=allocation.id,
+        action="allocate",
+        actor="system",
+        actor_type="ai",
+        model_used=alloc_result.model_used,
+        new_state={
+            "status": allocation.status.value if isinstance(allocation.status, AllocationStatus) else allocation.status,
+            "total_amount": allocation.total_amount,
+            "line_items_count": len(allocation.line_items),
+        },
+    )
+
     return _allocation_to_response(allocation)
 
 
@@ -219,12 +251,26 @@ async def approve_allocation(
     if allocation is None:
         raise HTTPException(status_code=404, detail="Allocation not found")
 
+    previous_status = allocation.status.value if isinstance(allocation.status, AllocationStatus) else allocation.status
     if request.action == "approve":
         allocation.status = AllocationStatus.APPROVED
     else:
         allocation.status = AllocationStatus.REJECTED
 
     await db.flush()
+
+    await AuditService.log_event(
+        db,
+        event_type=f"ALLOCATION_{request.action.upper()}D",
+        entity_type="cost_allocation",
+        entity_id=allocation.id,
+        action=request.action,
+        actor="user",
+        actor_type="user",
+        previous_state={"status": previous_status},
+        new_state={"status": allocation.status.value if isinstance(allocation.status, AllocationStatus) else allocation.status},
+    )
+
     return _allocation_to_response(allocation)
 
 

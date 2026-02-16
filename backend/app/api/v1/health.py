@@ -39,5 +39,77 @@ async def health_check(db: AsyncSession = Depends(get_db)) -> HealthResponse:
         redis=redis_status,
         timestamp=datetime.now(timezone.utc),
         environment=settings.environment,
-        version="0.1.0",
+        version="0.4.0",
     )
+
+
+@router.get("/metrics")
+async def get_metrics(db: AsyncSession = Depends(get_db)) -> dict:
+    """Get system metrics: eval scores, HITL stats, processing stats."""
+    from sqlalchemy import func as sa_func
+
+    # Latest extraction eval accuracy
+    latest_eval = (await db.execute(
+        text(
+            "SELECT overall_accuracy, model_used, created_at FROM eval_results "
+            "WHERE eval_type = 'extraction' ORDER BY created_at DESC LIMIT 1"
+        )
+    )).first()
+
+    # Latest RAG eval
+    latest_rag_eval = (await db.execute(
+        text(
+            "SELECT overall_accuracy, created_at FROM eval_results "
+            "WHERE eval_type = 'rag' ORDER BY created_at DESC LIMIT 1"
+        )
+    )).first()
+
+    # HITL stats
+    from app.models.review import ReviewItem, ReviewStatus
+    total_reviews = (await db.execute(
+        text("SELECT COUNT(*) FROM review_queue")
+    )).scalar() or 0
+    approved_reviews = (await db.execute(
+        text("SELECT COUNT(*) FROM review_queue WHERE status = 'approved'")
+    )).scalar() or 0
+
+    # Anomaly stats
+    total_anomalies = (await db.execute(
+        text("SELECT COUNT(*) FROM anomaly_flags")
+    )).scalar() or 0
+    unresolved_anomalies = (await db.execute(
+        text("SELECT COUNT(*) FROM anomaly_flags WHERE is_resolved = false")
+    )).scalar() or 0
+
+    # Document processing stats
+    total_docs = (await db.execute(
+        text("SELECT COUNT(*) FROM documents")
+    )).scalar() or 0
+    extracted_docs = (await db.execute(
+        text("SELECT COUNT(*) FROM documents WHERE status = 'extracted'")
+    )).scalar() or 0
+
+    return {
+        "extraction_eval": {
+            "latest_accuracy": latest_eval[0] if latest_eval else None,
+            "model_used": latest_eval[1] if latest_eval else None,
+            "evaluated_at": latest_eval[2].isoformat() if latest_eval and latest_eval[2] else None,
+        },
+        "rag_eval": {
+            "latest_hit_rate": latest_rag_eval[0] if latest_rag_eval else None,
+            "evaluated_at": latest_rag_eval[1].isoformat() if latest_rag_eval and latest_rag_eval[1] else None,
+        },
+        "hitl": {
+            "total_reviews": total_reviews,
+            "approved": approved_reviews,
+            "approval_rate": round(approved_reviews / max(total_reviews, 1), 3),
+        },
+        "anomalies": {
+            "total": total_anomalies,
+            "unresolved": unresolved_anomalies,
+        },
+        "documents": {
+            "total": total_docs,
+            "extracted": extracted_docs,
+        },
+    }

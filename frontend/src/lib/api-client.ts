@@ -199,3 +199,134 @@ export async function seedRAGData(): Promise<{ message: string }> {
 export async function getRAGStats(): Promise<RagStats> {
   return apiFetch<RagStats>("/rag/stats");
 }
+
+// ── Review Queue ─────────────────────────────────────────────────
+
+export async function getReviewQueue(
+  params?: { status?: string; item_type?: string; page?: number; per_page?: number },
+) {
+  const qs = new URLSearchParams();
+  if (params?.status) qs.set("status", params.status);
+  if (params?.item_type) qs.set("item_type", params.item_type);
+  if (params?.page) qs.set("page", String(params.page));
+  if (params?.per_page) qs.set("per_page", String(params.per_page));
+  return apiFetch(`/reviews/queue?${qs.toString()}`);
+}
+
+export async function getReviewItem(id: string) {
+  return apiFetch(`/reviews/${id}`);
+}
+
+export async function reviewAction(
+  id: string,
+  action: string,
+  notes?: string,
+) {
+  return apiFetch(`/reviews/${id}/action`, {
+    method: "POST",
+    body: JSON.stringify({ action, notes, reviewed_by: "user" }),
+  });
+}
+
+export async function getReviewStats() {
+  return apiFetch("/reviews/stats");
+}
+
+// ── Anomalies ────────────────────────────────────────────────────
+
+export async function scanAnomalies(documentId?: string) {
+  return apiFetch("/anomalies/scan", {
+    method: "POST",
+    body: JSON.stringify({ document_id: documentId || null }),
+  });
+}
+
+export async function getAnomalies(
+  params?: { anomaly_type?: string; severity?: string; is_resolved?: boolean; page?: number },
+) {
+  const qs = new URLSearchParams();
+  if (params?.anomaly_type) qs.set("anomaly_type", params.anomaly_type);
+  if (params?.severity) qs.set("severity", params.severity);
+  if (params?.is_resolved !== undefined) qs.set("is_resolved", String(params.is_resolved));
+  if (params?.page) qs.set("page", String(params.page));
+  return apiFetch(`/anomalies/list?${qs.toString()}`);
+}
+
+export async function getAnomaly(id: string) {
+  return apiFetch(`/anomalies/${id}`);
+}
+
+export async function resolveAnomaly(id: string, notes?: string) {
+  return apiFetch(`/anomalies/${id}/resolve`, {
+    method: "POST",
+    body: JSON.stringify({ resolved_by: "user", resolution_notes: notes }),
+  });
+}
+
+export async function getAnomalyStats() {
+  return apiFetch("/anomalies/stats");
+}
+
+// ── Reconciliation ───────────────────────────────────────────────
+
+export async function runReconciliation(name?: string) {
+  return apiFetch("/reconciliation/run", {
+    method: "POST",
+    body: JSON.stringify({ name, run_by: "user" }),
+  });
+}
+
+export async function seedReconciliationData() {
+  return apiFetch("/reconciliation/seed", { method: "POST" });
+}
+
+export async function getReconciliationRuns(page = 1) {
+  return apiFetch(`/reconciliation/runs?page=${page}`);
+}
+
+export async function getReconciliationRun(id: string) {
+  return apiFetch(`/reconciliation/${id}`);
+}
+
+export async function getReconciliationStats() {
+  return apiFetch("/reconciliation/stats");
+}
+
+// ── Audit ────────────────────────────────────────────────────────
+
+export async function getAuditEvents(
+  params?: { entity_type?: string; event_type?: string; page?: number },
+) {
+  const qs = new URLSearchParams();
+  if (params?.entity_type) qs.set("entity_type", params.entity_type);
+  if (params?.event_type) qs.set("event_type", params.event_type);
+  if (params?.page) qs.set("page", String(params.page));
+  return apiFetch(`/audit/events?${qs.toString()}`);
+}
+
+export async function generateAuditReport() {
+  return apiFetch("/audit/reports", {
+    method: "POST",
+    body: JSON.stringify({ include_summary: true }),
+  });
+}
+
+export async function getAuditStats() {
+  return apiFetch("/audit/stats");
+}
+
+// ── MCP ──────────────────────────────────────────────────────────
+
+export async function getMcpStatus() {
+  return apiFetch("/mcp/status");
+}
+
+export async function seedMcpData() {
+  return apiFetch("/mcp/seed", { method: "POST" });
+}
+
+// ── Metrics ──────────────────────────────────────────────────────
+
+export async function getMetrics() {
+  return apiFetch("/metrics");
+}

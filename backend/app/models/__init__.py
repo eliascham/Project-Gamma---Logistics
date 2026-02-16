@@ -9,6 +9,16 @@ from app.models.cost_allocation import (
 from app.models.document import Document, DocumentStatus
 from app.models.embedding import Embedding
 from app.models.rag import RagQuery
+from app.models.audit import AuditEvent
+from app.models.review import ReviewItem, ReviewStatus, ReviewItemType
+from app.models.anomaly import AnomalyFlag, AnomalyType, AnomalySeverity
+from app.models.reconciliation import (
+    ReconciliationRun,
+    ReconciliationRecord,
+    ReconciliationStatus,
+    RecordSource,
+)
+from app.models.mock_data import MockLogisticsData, ProjectBudget
 
 __all__ = [
     "Base",
@@ -22,4 +32,17 @@ __all__ = [
     "LineItemStatus",
     "Embedding",
     "RagQuery",
+    "AuditEvent",
+    "ReviewItem",
+    "ReviewStatus",
+    "ReviewItemType",
+    "AnomalyFlag",
+    "AnomalyType",
+    "AnomalySeverity",
+    "ReconciliationRun",
+    "ReconciliationRecord",
+    "ReconciliationStatus",
+    "RecordSource",
+    "MockLogisticsData",
+    "ProjectBudget",
 ]

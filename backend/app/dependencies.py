@@ -23,3 +23,23 @@ def get_qa_pipeline() -> QAPipeline:
 
 def get_rag_ingestor() -> RAGIngestor:
     return RAGIngestor(settings)
+
+
+def get_hitl_service():
+    from app.hitl_workflow.service import HITLService
+    return HITLService(settings)
+
+
+def get_anomaly_flagger():
+    from app.anomaly_flagger.service import AnomalyFlagger
+    return AnomalyFlagger(settings)
+
+
+def get_reconciliation_engine():
+    from app.reconciliation_engine.service import ReconciliationEngine
+    return ReconciliationEngine(settings)
+
+
+def get_audit_report_generator():
+    from app.audit_generator.report_generator import AuditReportGenerator
+    return AuditReportGenerator(settings)

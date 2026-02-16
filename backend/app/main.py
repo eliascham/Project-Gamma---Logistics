@@ -19,6 +19,19 @@ logger = logging.getLogger(__name__)
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    # Initialize Sentry if DSN is configured
+    if settings.sentry_dsn:
+        try:
+            import sentry_sdk
+            sentry_sdk.init(
+                dsn=settings.sentry_dsn,
+                traces_sample_rate=0.1,
+                environment=settings.environment,
+            )
+            logger.info("Sentry initialized (env=%s)", settings.environment)
+        except Exception as e:
+            logger.warning("Failed to initialize Sentry: %s", e)
+
     logger.info("Starting Project Gamma backend (env=%s)", settings.environment)
     yield
     logger.info("Shutting down Project Gamma backend")

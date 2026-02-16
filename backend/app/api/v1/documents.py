@@ -55,6 +55,22 @@ async def upload_document(
     db.add(document)
     await db.flush()
 
+    from app.audit_generator.service import AuditService
+    await AuditService.log_event(
+        db,
+        event_type="DOCUMENT_UPLOADED",
+        entity_type="document",
+        entity_id=document.id,
+        action="upload",
+        actor="user",
+        actor_type="user",
+        new_state={
+            "filename": document.original_filename,
+            "file_type": document.file_type,
+            "file_size": document.file_size,
+        },
+    )
+
     return DocumentUploadResponse(
         id=document.id,
         filename=stored_filename,

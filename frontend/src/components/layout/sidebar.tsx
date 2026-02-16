@@ -15,9 +15,11 @@ import {
   GitCompare,
   Shield,
   Database,
+  LogOut,
 } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
+import { useAuth } from "@/lib/auth-context";
 
 const navItems = [
   { href: "/", label: "Dashboard", icon: LayoutDashboard },
@@ -34,6 +36,7 @@ const navItems = [
 
 export function Sidebar() {
   const pathname = usePathname();
+  const { user, logout } = useAuth();
 
   return (
     <aside className="flex w-60 flex-col border-r bg-sidebar">
@@ -77,6 +80,25 @@ export function Sidebar() {
           );
         })}
       </nav>
+      <Separator />
+      {user && (
+        <div className="flex items-center gap-3 px-4 py-3">
+          <div className="flex size-8 items-center justify-center rounded-full bg-primary/10 text-primary text-xs font-bold">
+            {user.name.charAt(0).toUpperCase()}
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-medium truncate">{user.name}</p>
+            <p className="text-xs text-muted-foreground truncate">{user.email}</p>
+          </div>
+          <button
+            onClick={logout}
+            className="p-1.5 rounded-md text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
+            title="Sign out"
+          >
+            <LogOut className="size-4" />
+          </button>
+        </div>
+      )}
       <div className="flex items-center justify-between border-t p-3">
         <span className="text-xs text-muted-foreground">v0.4.0</span>
         <ThemeToggle />

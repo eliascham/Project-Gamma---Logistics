@@ -46,6 +46,7 @@ Project Gamma turns logistics documents (freight invoices, bills of lading) into
 - **Structured logging** — JSON request logs with request ID tracing
 - **Sentry integration** — Optional error monitoring (conditional on `SENTRY_DSN`)
 - **Metrics endpoint** — System-wide metrics (eval scores, HITL stats, anomaly counts)
+- **SSO login page** — Premium split-screen login with Google and Microsoft SSO buttons, email/password form, localStorage-persisted mock auth session, auth-gated app shell with user info in sidebar
 
 ---
 
@@ -54,8 +55,8 @@ Project Gamma turns logistics documents (freight invoices, bills of lading) into
 ```
 ┌──────────────────────────────────────────────────────────────────┐
 │                       Next.js 15 Frontend                        │
-│   Dashboard · Documents · Allocations · Chat · Reviews           │
-│   Anomalies · Reconciliation · Data Explorer · Audit Log         │
+│   Login (SSO) · Dashboard · Documents · Allocations · Chat       │
+│   Reviews · Anomalies · Reconciliation · Data Explorer · Audit   │
 │              (React 19, Tailwind, shadcn/ui)                     │
 └──────────────────────────┬───────────────────────────────────────┘
                            │ HTTP/REST
@@ -386,6 +387,7 @@ project-gamma/
 ├── frontend/
 │   └── src/
 │       ├── app/                    # Next.js pages
+│       │   ├── login/              #   SSO login page (Google, Microsoft, email)
 │       │   ├── page.tsx            #   Dashboard with Phase 4 widgets
 │       │   ├── documents/          #   Document upload + list
 │       │   ├── allocations/        #   Cost allocation detail
@@ -397,7 +399,7 @@ project-gamma/
 │       │   └── audit/              #   Audit event timeline
 │       ├── components/             # React components (30+)
 │       ├── hooks/                  # Custom hooks
-│       ├── lib/                    # API client + utilities
+│       ├── lib/                    # API client, auth context, utilities
 │       └── types/                  # TypeScript interfaces
 ├── docker-compose.yml              # 5-service orchestration
 ├── .env.example                    # Environment variable template

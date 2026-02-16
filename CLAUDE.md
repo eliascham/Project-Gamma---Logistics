@@ -187,6 +187,8 @@ backend/
 - Sentry integration (optional, conditional on SENTRY_DSN)
 - Metrics endpoint — system-wide observability
 - Frontend pages: Review Queue, Anomalies, Reconciliation, Audit Log, Data Explorer, Dashboard widgets
+- Premium login page — Google + Microsoft SSO buttons (UI-only mock auth), email/password form
+- Auth-gated app shell — localStorage session, auto-redirect to /login, user info + logout in sidebar
 
 ## API Endpoints
 
@@ -284,3 +286,6 @@ See `.env.example` for all required variables. Key ones:
 - GET /reviews/{id} returns `ReviewItemDetailResponse` (enriched with context); POST /reviews/{id}/action returns base `ReviewItemResponse` (no context) — frontend preserves context locally after action
 - Review detail suggested actions + guidance are defined in `api/v1/reviews.py` (`_SUGGESTED_ACTIONS`, `_GUIDANCE` dicts) keyed by anomaly type
 - Structured JSON logs include request_id header (X-Request-ID) for traceability
+- Login page is at `/login` with its own layout (no sidebar/header) — `AppShell` component conditionally renders the app shell
+- Auth state managed by `AuthProvider` in `lib/auth-context.tsx` — persists to `localStorage` key `gamma-auth`
+- Mock SSO: login sets user in context (no real OAuth); swap `AuthProvider` for real OAuth provider in production

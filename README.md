@@ -1,12 +1,13 @@
 # Project Gamma — Logistics Operations Intelligence
 
-An on-prem-ready AI platform that automates logistics accounting and document workflows. Powered by Claude AI for document extraction, cost allocation, and operational Q&A with RAG.
+An on-prem-ready AI platform that automates logistics accounting and document workflows. Powered by Claude AI for document extraction, cost allocation, operational Q&A, anomaly detection, and three-way reconciliation — with full audit trails and human-in-the-loop review.
 
 ![Python](https://img.shields.io/badge/Python-3.12-blue)
 ![FastAPI](https://img.shields.io/badge/FastAPI-0.115-green)
 ![Next.js](https://img.shields.io/badge/Next.js-15-black)
 ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-blue)
 ![Claude](https://img.shields.io/badge/Claude-Sonnet-orange)
+![MCP](https://img.shields.io/badge/MCP-Server-purple)
 ![License](https://img.shields.io/badge/License-MIT-yellow)
 
 ---
@@ -50,36 +51,47 @@ Project Gamma turns logistics documents (freight invoices, bills of lading) into
 ## Architecture
 
 ```
-┌─────────────────────────────────────────────────────────┐
-│                    Next.js Frontend                      │
-│          Dashboard · Documents · Allocations · Chat      │
-│              (React 19, Tailwind, shadcn/ui)             │
-└───────────────────────────┬─────────────────────────────┘
-                            │ HTTP/REST
-┌───────────────────────────▼─────────────────────────────┐
-│                   FastAPI Backend                         │
-│                                                          │
-│  ┌──────────────┐  ┌───────────────┐  ┌──────────────┐  │
-│  │  Document     │  │  Cost          │  │  RAG Q&A     │  │
-│  │  Extractor    │  │  Allocator     │  │  Engine       │  │
-│  │              │  │               │  │              │  │
-│  │ Parse → Class │  │ Rules → Claude │  │ Embed → Find │  │
-│  │ → Extract     │  │ → Allocate     │  │ → Answer     │  │
-│  │ → Review      │  │ → Score        │  │ → Cite       │  │
-│  └──────┬───────┘  └───────┬───────┘  └──────┬───────┘  │
-│         │                  │                  │          │
-│  ┌──────▼──────────────────▼──────────────────▼───────┐  │
-│  │              Claude API (Anthropic SDK)             │  │
-│  │         Sonnet (extraction/allocation/Q&A)          │  │
-│  │         Haiku (classification)                      │  │
-│  └────────────────────────────────────────────────────┘  │
-└──────────┬──────────────────────────────┬───────────────┘
-           │                              │
-┌──────────▼──────────┐     ┌─────────────▼────────────┐
-│  PostgreSQL + pgvec │     │   Redis                  │
-│  Documents, Allocs, │     │   Cache & Queue           │
-│  Embeddings (1024d) │     │                          │
-└─────────────────────┘     └──────────────────────────┘
+┌──────────────────────────────────────────────────────────────────┐
+│                       Next.js 15 Frontend                        │
+│   Dashboard · Documents · Allocations · Chat · Reviews           │
+│   Anomalies · Reconciliation · Audit Log                         │
+│              (React 19, Tailwind, shadcn/ui)                     │
+└──────────────────────────┬───────────────────────────────────────┘
+                           │ HTTP/REST
+┌──────────────────────────▼───────────────────────────────────────┐
+│                      FastAPI Backend                              │
+│                                                                   │
+│  ┌─────────────┐ ┌─────────────┐ ┌─────────────┐ ┌────────────┐ │
+│  │  Document    │ │  Cost        │ │  RAG Q&A    │ │  Anomaly   │ │
+│  │  Extractor   │ │  Allocator   │ │  Engine     │ │  Flagger   │ │
+│  │             │ │             │ │             │ │            │ │
+│  │ Parse→Class │ │ Rules→Claude│ │ Embed→Find  │ │ Dup/Budget │ │
+│  │ →Extract    │ │ →Allocate   │ │ →Answer     │ │ →Low Conf  │ │
+│  │ →Review     │ │ →Score      │ │ →Cite       │ │ →Flag      │ │
+│  └──────┬──────┘ └──────┬──────┘ └──────┬──────┘ └─────┬──────┘ │
+│         │               │               │              │         │
+│  ┌──────┴───────────────┴───────────────┴──────────────┴──────┐  │
+│  │                Claude API (Anthropic SDK)                   │  │
+│  │         Sonnet (extraction / allocation / Q&A / audit)      │  │
+│  │         Haiku (classification)                              │  │
+│  └────────────────────────────────────────────────────────────┘  │
+│                                                                   │
+│  ┌─────────────┐ ┌─────────────┐ ┌─────────────┐ ┌────────────┐ │
+│  │  Reconcil.   │ │  HITL        │ │  Audit       │ │  Eval      │ │
+│  │  Engine      │ │  Workflow    │ │  Generator   │ │  Suite     │ │
+│  │             │ │             │ │             │ │            │ │
+│  │ TMS↔WMS↔ERP│ │ Auto-approve│ │ Append-only │ │ Extraction │ │
+│  │ Match+Fuzzy │ │ Review Queue│ │ Event Log   │ │ RAG Quality│ │
+│  └─────────────┘ └─────────────┘ └─────────────┘ └────────────┘ │
+└──────────┬──────────────────────────────┬──────────┬─────────────┘
+           │                              │          │
+┌──────────▼──────────┐     ┌─────────────▼───┐  ┌──▼──────────────┐
+│  PostgreSQL + pgvec │     │   Redis         │  │  MCP Server     │
+│  Documents, Allocs, │     │   Cache & Queue  │  │  Claude Desktop │
+│  Embeddings (1024d),│     │                 │  │  4 logistics    │
+│  Audit, Reviews,    │     │                 │  │  tools (stdio)  │
+│  Anomalies, Recon   │     │                 │  │                 │
+└─────────────────────┘     └─────────────────┘  └─────────────────┘
 ```
 
 ---
@@ -184,6 +196,55 @@ curl -X POST http://localhost:8000/api/v1/rag/query \
   -d '{"question": "What GL account is used for ocean freight?"}'
 ```
 
+### Scan for anomalies
+
+```bash
+# Run anomaly detection on a document (duplicate invoice, budget overrun, etc.)
+curl -X POST http://localhost:8000/api/v1/anomalies/scan \
+  -H "Content-Type: application/json" \
+  -d '{"document_id": "your-document-uuid"}'
+
+# View flagged anomalies
+curl http://localhost:8000/api/v1/anomalies/list
+```
+
+### Run reconciliation
+
+```bash
+# Seed mock TMS/WMS/ERP data
+curl -X POST http://localhost:8000/api/v1/reconciliation/seed
+
+# Run three-way reconciliation (TMS shipments vs ERP GL entries)
+curl -X POST http://localhost:8000/api/v1/reconciliation/run
+
+# View match results
+curl http://localhost:8000/api/v1/reconciliation/runs
+```
+
+### Review queue (HITL)
+
+```bash
+# View pending reviews (anomalies, low-confidence allocations, mismatches)
+curl http://localhost:8000/api/v1/reviews/queue
+
+# Approve a review item
+curl -X POST http://localhost:8000/api/v1/reviews/{id}/action \
+  -H "Content-Type: application/json" \
+  -d '{"action": "approved", "notes": "Reviewed and confirmed"}'
+```
+
+### Audit trail
+
+```bash
+# Browse audit events
+curl http://localhost:8000/api/v1/audit/events
+
+# Generate a Claude-powered audit report
+curl -X POST http://localhost:8000/api/v1/audit/reports \
+  -H "Content-Type: application/json" \
+  -d '{"days": 30}'
+```
+
 ---
 
 ## API Reference
@@ -281,19 +342,56 @@ project-gamma/
 │   │   ├── database.py             # Async SQLAlchemy engine
 │   │   ├── dependencies.py         # Dependency injection factories
 │   │   ├── api/v1/                 # Route handlers
+│   │   │   ├── health.py           #   Health + metrics endpoints
+│   │   │   ├── documents.py        #   Document upload/list/detail
+│   │   │   ├── extractions.py      #   Extraction pipeline triggers
+│   │   │   ├── allocations.py      #   Cost allocation + overrides
+│   │   │   ├── rag.py              #   RAG Q&A + ingestion
+│   │   │   ├── audit.py            #   Audit event log + reports
+│   │   │   ├── reviews.py          #   HITL review queue
+│   │   │   ├── anomalies.py        #   Anomaly detection + resolution
+│   │   │   ├── reconciliation.py   #   Three-way reconciliation
+│   │   │   ├── mcp_status.py       #   MCP server status + mock data
+│   │   │   └── eval.py             #   Extraction + RAG eval suites
 │   │   ├── models/                 # SQLAlchemy ORM models
+│   │   │   ├── document.py         #   Document + DocumentStatus
+│   │   │   ├── cost_allocation.py  #   Allocation, LineItem, Rule
+│   │   │   ├── embedding.py        #   pgvector embeddings
+│   │   │   ├── rag.py              #   RAG query history
+│   │   │   ├── audit.py            #   AuditEvent (immutable log)
+│   │   │   ├── review.py           #   ReviewItem + state enums
+│   │   │   ├── anomaly.py          #   AnomalyFlag + severity enums
+│   │   │   ├── reconciliation.py   #   ReconciliationRun/Record
+│   │   │   └── mock_data.py        #   MockLogisticsData, ProjectBudget
 │   │   ├── schemas/                # Pydantic request/response schemas
-│   │   ├── services/               # Claude + document services
+│   │   ├── services/               # Claude API wrapper + document service
 │   │   ├── document_extractor/     # Parse → classify → extract → review
 │   │   ├── cost_allocator/         # Business rules + Claude allocation
-│   │   ├── rag_engine/             # Embeddings, chunking, retrieval, Q&A
-│   │   └── eval/                   # Extraction accuracy evaluation
-│   ├── tests/                      # pytest test suites
-│   └── alembic/                    # Database migrations
+│   │   ├── rag_engine/             # Voyage AI embeddings, chunking, retrieval, Q&A
+│   │   ├── anomaly_flagger/        # Duplicate/budget/amount/confidence detectors
+│   │   ├── audit_generator/        # Append-only audit log + Claude report generation
+│   │   ├── hitl_workflow/          # Review queue state machine + trigger rules
+│   │   ├── reconciliation_engine/  # TMS/ERP matching (deterministic + fuzzy)
+│   │   ├── mcp_server/             # MCP server for Claude Desktop (stdio)
+│   │   │   ├── server.py           #   LogisticsMCPServer (4 tools)
+│   │   │   ├── data_layer.py       #   MCPDataLayer (DB queries)
+│   │   │   ├── mock_data.py        #   Deterministic mock data generator
+│   │   │   └── __main__.py         #   Entry point: python -m app.mcp_server
+│   │   └── eval/                   # Extraction + RAG evaluation harness
+│   ├── tests/                      # pytest test suites (74 Phase 4 tests)
+│   └── alembic/                    # Database migrations (001-004)
 ├── frontend/
 │   └── src/
-│       ├── app/                    # Next.js pages (dashboard, docs, chat)
-│       ├── components/             # React components (26+)
+│       ├── app/                    # Next.js pages
+│       │   ├── page.tsx            #   Dashboard with Phase 4 widgets
+│       │   ├── documents/          #   Document upload + list
+│       │   ├── allocations/        #   Cost allocation detail
+│       │   ├── chat/               #   RAG Q&A chat interface
+│       │   ├── reviews/            #   HITL review queue + detail
+│       │   ├── anomalies/          #   Anomaly list + resolution
+│       │   ├── reconciliation/     #   Reconciliation runs + detail
+│       │   └── audit/              #   Audit event timeline
+│       ├── components/             # React components (30+)
 │       ├── hooks/                  # Custom hooks
 │       ├── lib/                    # API client + utilities
 │       └── types/                  # TypeScript interfaces
@@ -301,6 +399,69 @@ project-gamma/
 ├── .env.example                    # Environment variable template
 └── CLAUDE.md                       # Project context for AI assistants
 ```
+
+---
+
+## HITL Review Workflow
+
+The human-in-the-loop system enforces review policies based on risk level:
+
+```
+                    ┌─────────────────┐
+                    │  Event triggers  │
+                    │  review item     │
+                    └────────┬────────┘
+                             │
+                    ┌────────▼────────┐
+                    │  Apply autonomy  │
+                    │  rules           │
+                    └────────┬────────┘
+                             │
+              ┌──────────────┼──────────────┐
+              │              │              │
+    ┌─────────▼───┐  ┌──────▼──────┐  ┌───▼──────────┐
+    │ Low risk     │  │ Medium risk  │  │ High risk     │
+    │ < $1,000     │  │ $1K - $10K   │  │ > $10,000     │
+    │ High conf.   │  │              │  │               │
+    │              │  │              │  │               │
+    │ AUTO-APPROVE │  │ PENDING      │  │ MANDATORY     │
+    │              │  │ REVIEW       │  │ REVIEW        │
+    └──────────────┘  └──────┬──────┘  └───┬──────────┘
+                             │              │
+                    ┌────────▼──────────────▼┐
+                    │    Human reviewer       │
+                    │                        │
+                    │  Approve / Reject /     │
+                    │  Escalate              │
+                    └────────┬───────────────┘
+                             │
+                    ┌────────▼────────┐
+                    │  Audit event     │
+                    │  logged          │
+                    └─────────────────┘
+```
+
+**What triggers review items:**
+- Cost allocations with confidence below 85%
+- Anomaly flags (duplicate invoices, budget overruns)
+- Reconciliation mismatches
+- High-value transactions above $10K threshold
+
+---
+
+## Database Schema (Phase 4)
+
+Phase 4 adds 6 new tables to the existing schema:
+
+| Table | Purpose | Key Fields |
+|-------|---------|------------|
+| `audit_events` | Immutable append-only event log | entity_type, action, actor, previous/new state, rationale |
+| `review_queue` | HITL review items with state machine | item_type, severity, status (pending→approved/rejected/escalated) |
+| `anomaly_flags` | Detected anomalies per document | anomaly_type, severity, details, resolution status |
+| `reconciliation_runs` | Reconciliation batch results | match_rate, matched/mismatch counts, summary |
+| `reconciliation_records` | Individual record match results | source (TMS/WMS/ERP), match_status, confidence, reasoning |
+| `mock_logistics_data` | Simulated TMS/WMS/ERP records | data_source, record_type, reference_number, JSON data |
+| `project_budgets` | Project budget tracking | project_code, budget_amount, spent_amount, cost_center |
 
 ---
 
@@ -424,6 +585,22 @@ cd backend && python -m pytest tests/ -v
 
 # Frontend tests
 cd frontend && pnpm test
+```
+
+### Test suites
+
+```bash
+# All backend tests (SQLite, no Postgres needed)
+cd backend && python -m pytest tests/ -v
+
+# Test breakdown:
+#   test_cost_allocation.py   — Cost allocation pipeline + rules
+#   test_rag.py               — Chunker, text conversion, QA pipeline
+#   test_audit.py             — AuditService log/query, stats (8 tests)
+#   test_hitl.py              — State machine, triggers, auto-approve (20 tests)
+#   test_anomaly.py           — Duplicate, budget, amount detectors (16 tests)
+#   test_reconciliation.py    — Ref/amount/date matchers, composite (19 tests)
+#   test_mcp.py               — Mock data determinism, structure (11 tests)
 ```
 
 ### Run eval suites

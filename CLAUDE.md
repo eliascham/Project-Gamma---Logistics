@@ -98,7 +98,7 @@ backend/
       rag.py             # POST query, POST ingest, GET stats
     services/            # Business logic
       claude_service.py  # Claude API wrapper (extract, review, vision)
-      document_service.py# File save + text reading
+      document_service.py # File save + text reading
     document_extractor/  # Phase 2: extraction pipeline
       parser.py          # DocumentParser (PDF/image/CSV → ParsedDocument)
       classifier.py      # Haiku-based document type classification
@@ -117,10 +117,10 @@ backend/
       extraction_eval.py # Eval harness (runs pipeline against ground truth)
       rag_eval.py        # RAG retrieval quality eval (hit rate, MRR)
       ground_truth/      # Sample documents + expected JSON outputs
-    middleware/logging.py# Structured JSON request logging with request ID
+    middleware/logging.py # Structured JSON request logging with request ID
     audit_generator/     # Audit logging + report generation
       service.py         # AuditService (static, append-only log)
-      report_generator.py# Claude-powered audit report summaries
+      report_generator.py # Claude-powered audit report summaries
     hitl_workflow/       # Human-in-the-loop review queue
       service.py         # HITLService (state machine)
       triggers.py        # ReviewTriggers (pure functions)

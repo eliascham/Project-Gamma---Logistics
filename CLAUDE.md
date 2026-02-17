@@ -265,6 +265,46 @@ See `.env.example` for all required variables. Key ones:
 - `MCP_SERVER_PORT` — default: 3001
 - `SENTRY_DSN` — optional, leave empty to disable Sentry
 
+## Roadmap: Phases 5-8 (Planned)
+
+### Phase 5: Document Intelligence Expansion
+- **P0:** Commercial Invoice, Purchase Order, Packing List extraction schemas
+- **P1:** Arrival Notice, Air Waybill (AWB/HAWB), Debit/Credit Notes
+- **P2:** CBP 7501 (Customs Entry), Proof of Delivery, Certificate of Origin
+- **Document Relationship Model:** `DocumentRelationship` table linking source → target with relationship_type, reference_field, confidence
+- **Invoice variant classification:** detention/demurrage, accessorial, consolidated, pro-forma, debit/credit
+- **3-way PO-BOL-Invoice matching engine**
+
+### Phase 6: Enterprise Readiness
+- **P0:** Multi-tenancy (`tenant_id` on every table + PostgreSQL Row-Level Security)
+- **P0:** Real RBAC (roles/permissions, separation of duties — replace mock auth)
+- **P1:** Multi-level configurable approval workflows (extend HITL state machine)
+- **P1:** Per-tenant business rules engine (JSON/YAML definitions, versioned)
+- **P1:** Accounting exports (QuickBooks, Xero, NetSuite — journal entries from approved allocations)
+- **P1:** Email ingestion (auto-process invoices received via email)
+- **P1:** SOX-compliant audit retention (WORM storage, 7-year policy)
+
+### Phase 7: AI Differentiators
+- Smart GL coding with active learning (track corrections, retrain rules)
+- Automated dispute detection + Claude-drafted dispute letters
+- Natural language analytics (extend RAG to query operational data)
+- Rate benchmarking against market/contracted rates
+- Carbon/emissions tracking per shipment
+- Carrier performance scoring from reconciliation data
+
+### Phase 8: Platform & Integrations
+- EDI 210 inbound parsing, TMS connectors (MercuryGate, BluJay, OTM)
+- Notification system (email/Slack/SMS), batch processing / bulk import
+- Spend analytics dashboard, multi-currency support
+- Agentic invoice processing, custom document type builder
+- White-label branding, multi-region / Kubernetes deployment
+
+### Competitive Positioning
+- **On-prem moat:** Only serious logistics automation platform offering self-hosted deployment
+- **Transparent AI:** Claude explains reasoning with evidence (not a black box)
+- **Unified pipeline:** Document-to-GL in one platform (vs competitors doing only one piece)
+- **Market opportunity:** CargoWise 25-35% price increases creating churn; IDP market at 33% CAGR
+
 ## Known Issues / Gotchas
 
 - `python-magic` requires `libmagic` system library (included in Docker image, may need install locally on Windows)

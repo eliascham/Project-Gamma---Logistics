@@ -685,6 +685,92 @@ Available tools:
 - [x] **Phase 2** — Document Intelligence (multi-format parsing, classification, 2-pass extraction, eval suite)
 - [x] **Phase 3** — Cost Allocation & RAG (business rules, confidence scoring, Voyage AI embeddings, Q&A with citations)
 - [x] **Phase 4** — Guardrails & Production Hardening (audit logging, HITL workflow, anomaly detection, reconciliation, MCP server, eval improvements, monitoring)
+- [ ] **Phase 5** — Document Intelligence Expansion (see below)
+- [ ] **Phase 6** — Enterprise Readiness (see below)
+- [ ] **Phase 7** — AI Differentiators (see below)
+- [ ] **Phase 8** — Platform & Integrations (see below)
+
+---
+
+## Phase 5-8 Roadmap (Planned)
+
+### Phase 5: Document Intelligence Expansion
+
+Gamma currently supports 2 document types; a single shipment generates 15-25+. The IDP market is growing at ~33% CAGR to $43.9B by 2034.
+
+| Priority | Document Type | Impact | Why |
+|----------|--------------|--------|-----|
+| **P0** | Commercial Invoice | 10/10 | Required for every international shipment, customs matching |
+| **P0** | Purchase Order | 9/10 | Enables 3-way matching (PO vs BOL vs Invoice) — core AP automation |
+| **P0** | Packing List | 9/10 | Paired with commercial invoice for customs, weight/dimension validation |
+| **P1** | Arrival Notice | 8/10 | Triggers import clearance, demurrage avoidance ($75-300/container/day) |
+| **P1** | Air Waybill (AWB/HAWB) | 8/10 | Opens air freight vertical, complex chargeable weight auditing |
+| **P1** | Debit/Credit Notes | 7/10 | #1 source of AP reconciliation errors, low implementation effort |
+| **P2** | CBP 7501 (Customs Entry) | 7/10 | Duty audit and drawback claims |
+| **P2** | Proof of Delivery | 7/10 | Closes the shipment loop, triggers payment release |
+| **P2** | Certificate of Origin | 6/10 | Preferential duty rates under trade agreements |
+
+**Document Relationship Model:** Track the PO -> BOL -> Invoice -> POD chain for cross-document validation, one-click audit packages, and 3-way matching.
+
+**Invoice variant classification:** Detention/demurrage, accessorial charges, consolidated, pro-forma, debit/credit notes.
+
+### Phase 6: Enterprise Readiness
+
+| Priority | Feature | Impact | Effort |
+|----------|---------|--------|--------|
+| **P0** | Multi-tenancy (`tenant_id` + PostgreSQL RLS) | Critical | Large |
+| **P0** | Real RBAC (roles/permissions, separation of duties) | Critical | Medium |
+| **P1** | Multi-level configurable approval workflows | High | Medium |
+| **P1** | Per-tenant business rules engine | High | Medium |
+| **P1** | Accounting exports (QuickBooks, Xero, NetSuite) | High | Medium |
+| **P1** | Email ingestion (auto-process invoices from email) | High | Medium |
+| **P1** | SOX-compliant audit retention (WORM storage, 7-year retention) | High | Small |
+
+### Phase 7: AI Differentiators
+
+| Feature | Impact | Description |
+|---------|--------|-------------|
+| Smart GL coding with active learning | HIGH | Track user corrections, retrain allocation rules over time |
+| Automated dispute detection | HIGH | Extend anomaly detection to auto-generate dispute claims with evidence |
+| Natural language analytics | HIGH | Extend RAG to query operational data ("What's our avg cost per container?") |
+| 3-way PO-BOL-Invoice matching | HIGH | Core freight audit — automated matching catches overcharges |
+| Rate benchmarking | MEDIUM | Compare invoice rates against market/contracted rates |
+| Carbon/emissions tracking | MEDIUM | Per-shipment emissions estimates, sustainability dashboards |
+| Carrier performance scoring | MEDIUM | Score carriers on delivery, billing accuracy, dispute frequency |
+
+### Phase 8: Platform & Integrations
+
+| Feature | Priority | Notes |
+|---------|----------|-------|
+| EDI 210 inbound parsing | P2 | Automates invoice ingestion for automated clients |
+| TMS connectors (MercuryGate, BluJay, OTM) | P2 | Replace mock data with live operational data |
+| Notification system (email/Slack/SMS) | P2 | Configurable alerts, SLA breach notifications |
+| Batch processing / bulk import | P2 | Handle thousands of documents at once |
+| Spend analytics dashboard | P2 | Carrier spend, cost trending, budget vs actual |
+| Multi-currency support | P2 | Required for international logistics |
+| Agentic invoice processing | P3 | Autonomous end-to-end for routine invoices via MCP |
+| Custom document type builder | P3 | Let clients define their own extraction schemas |
+| White-label branding | P3 | Per-tenant logo, colors, custom domain |
+| Multi-region / Kubernetes | P3 | GDPR data sovereignty, production scaling |
+
+### Competitive Positioning
+
+**Gamma's moat is three things competitors can't easily replicate:**
+
+1. **On-prem / self-hosted** — CargoWise, Flexport, project44, Trax are all cloud-only. Defense, government, pharma, and EU clients under GDPR need data sovereignty.
+2. **Transparent AI** — Claude explains its reasoning with evidence for every decision. Competitors are black boxes. The existing HITL enrichment (evidence, guidance, suggested actions) is genuinely differentiated.
+3. **Unified pipeline** — Most competitors do document processing OR freight audit OR AP automation. Gamma does document-to-GL in one platform.
+
+**Market timing:** CargoWise's 25-35% price increases are creating churn. The IDP market is growing at 33% CAGR. Freight audit & payment is a $2.5B+ market.
+
+### Recommended Execution Order
+
+```
+Phase 5 (Now):     Commercial Invoice + PO + Packing List + Document Relationships + 3-Way Matching
+Phase 6 (Next):    Multi-tenancy + RBAC + Configurable Approvals + Accounting Exports
+Phase 7 (Then):    Smart GL Learning + Dispute Detection + NL Analytics + Email Ingestion
+Phase 8 (Later):   EDI + TMS Connectors + Notifications + Batch Processing
+```
 
 ---
 

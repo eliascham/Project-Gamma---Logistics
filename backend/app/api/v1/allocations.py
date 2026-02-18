@@ -118,8 +118,12 @@ async def run_allocation(
         raise HTTPException(status_code=404, detail="Document not found")
     if document.status != DocumentStatus.EXTRACTED:
         raise HTTPException(status_code=400, detail="Document must be extracted before allocation")
-    if document.document_type != "freight_invoice":
-        raise HTTPException(status_code=400, detail="Cost allocation only supports freight invoices")
+    allocable_types = {"freight_invoice", "commercial_invoice", "customs_entry", "debit_credit_note"}
+    if document.document_type not in allocable_types:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Cost allocation supports: {', '.join(sorted(allocable_types))}",
+        )
 
     # Get the latest extraction
     ext_row = (
@@ -144,7 +148,7 @@ async def run_allocation(
     rules_text = format_rules_for_prompt(rules)
 
     # Run the allocation pipeline
-    alloc_result = await pipeline.allocate(extraction_data, rules_text)
+    alloc_result = await pipeline.allocate(extraction_data, rules_text, doc_type=document.document_type)
 
     # Create the allocation record
     allocation = CostAllocation(

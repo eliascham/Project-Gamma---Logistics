@@ -15,6 +15,8 @@ import {
   GitCompare,
   Shield,
   Database,
+  Link2,
+  GitMerge,
   LogOut,
 } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
@@ -31,6 +33,8 @@ const navItems = [
   { href: "/anomalies", label: "Anomalies", icon: AlertTriangle },
   { href: "/reconciliation", label: "Reconciliation", icon: GitCompare },
   { href: "/data-explorer", label: "Data Explorer", icon: Database },
+  { href: "/relationships", label: "Relationships", icon: Link2 },
+  { href: "/matching", label: "Matching", icon: GitMerge },
   { href: "/audit", label: "Audit Log", icon: Shield },
 ];
 

@@ -19,6 +19,7 @@ from app.models.reconciliation import (
     RecordSource,
 )
 from app.models.mock_data import MockLogisticsData, ProjectBudget
+from app.models.document_relationship import DocumentRelationship, RelationshipType
 
 __all__ = [
     "Base",
@@ -45,4 +46,6 @@ __all__ = [
     "RecordSource",
     "MockLogisticsData",
     "ProjectBudget",
+    "DocumentRelationship",
+    "RelationshipType",
 ]

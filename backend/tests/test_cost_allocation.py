@@ -151,8 +151,8 @@ class TestAllocationRules:
         assert "5100-FREIGHT" in result
 
     def test_default_rules_count(self):
-        """Verify we have 10 default demo rules."""
-        assert len(DEFAULT_RULES) == 10
+        """Verify we have 14 default demo rules (10 original + 4 Phase 5)."""
+        assert len(DEFAULT_RULES) == 14
         for rule in DEFAULT_RULES:
             assert "rule_name" in rule
             assert "project_code" in rule

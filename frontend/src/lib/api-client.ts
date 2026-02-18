@@ -2,6 +2,8 @@ import type { CostAllocation, AllocationLineItem, AllocationRule } from "@/types
 import type { Document, DocumentListResponse, DocumentUploadResponse } from "@/types/document";
 import type { ExtractionResponse } from "@/types/extraction";
 import type { RagQueryResponse, RagStats } from "@/types/rag";
+import type { DocumentRelationship, DocumentRelationshipCreate } from "@/types/relationship";
+import type { ThreeWayMatchResult } from "@/types/matching";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
@@ -349,4 +351,46 @@ export async function getMcpBudgets() {
 
 export async function getMetrics() {
   return apiFetch("/metrics");
+}
+
+// ── Document Relationships ──────────────────────────────────────
+
+export async function getRelationships(documentId?: string) {
+  const params = new URLSearchParams();
+  if (documentId) params.set("document_id", documentId);
+  return apiFetch<DocumentRelationship[]>(`/relationships/?${params}`);
+}
+
+export async function createRelationship(data: DocumentRelationshipCreate) {
+  return apiFetch<DocumentRelationship>("/relationships/", {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
+}
+
+export async function deleteRelationship(id: string) {
+  return apiFetch<{ deleted: boolean }>(`/relationships/${id}`, {
+    method: "DELETE",
+  });
+}
+
+export async function detectRelationships(documentId: string) {
+  return apiFetch<DocumentRelationship[]>(`/relationships/detect/${documentId}`, {
+    method: "POST",
+  });
+}
+
+// ── 3-Way Matching ──────────────────────────────────────────────
+
+export async function runThreeWayMatch(data: { po_document_id?: string; bol_document_id?: string; invoice_document_id?: string }) {
+  return apiFetch<ThreeWayMatchResult>("/matching/run", {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
+}
+
+export async function autoMatch(documentId: string) {
+  return apiFetch<ThreeWayMatchResult>(`/matching/auto/${documentId}`, {
+    method: "POST",
+  });
 }

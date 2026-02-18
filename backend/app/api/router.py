@@ -8,9 +8,11 @@ from app.api.v1 import (
     eval,
     extractions,
     health,
+    matching,
     mcp_status,
     rag,
     reconciliation,
+    relationships,
     reviews,
 )
 
@@ -26,4 +28,6 @@ api_router.include_router(audit.router, prefix="/v1/audit", tags=["audit"])
 api_router.include_router(reviews.router, prefix="/v1/reviews", tags=["reviews"])
 api_router.include_router(anomalies.router, prefix="/v1/anomalies", tags=["anomalies"])
 api_router.include_router(reconciliation.router, prefix="/v1/reconciliation", tags=["reconciliation"])
+api_router.include_router(relationships.router, prefix="/v1/relationships", tags=["relationships"])
+api_router.include_router(matching.router, prefix="/v1/matching", tags=["matching"])
 api_router.include_router(mcp_status.router, prefix="/v1/mcp", tags=["mcp"])

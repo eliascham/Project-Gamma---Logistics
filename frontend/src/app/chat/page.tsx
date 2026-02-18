@@ -39,6 +39,7 @@ export default function ChatPage() {
     const userMsg: ChatMessageType = {
       role: "user",
       content: question,
+      timestamp: new Date().toISOString(),
     };
     setMessages((prev) => [...prev, userMsg]);
     setLoading(true);
@@ -51,12 +52,14 @@ export default function ChatPage() {
         role: "assistant",
         content: response.answer,
         sources: response.sources,
+        timestamp: new Date().toISOString(),
       };
       setMessages((prev) => [...prev, assistantMsg]);
     } catch (err: unknown) {
       const errorMsg: ChatMessageType = {
         role: "assistant",
         content: `Sorry, something went wrong: ${err instanceof Error ? err.message : "Unknown error"}`,
+        timestamp: new Date().toISOString(),
       };
       setMessages((prev) => [...prev, errorMsg]);
     } finally {
@@ -113,7 +116,7 @@ export default function ChatPage() {
                   {stats.total_embeddings} chunks
                 </Badge>
                 <Badge variant="outline">
-                  {stats.total_documents} docs
+                  {stats.total_documents_ingested} docs
                 </Badge>
               </div>
             )}

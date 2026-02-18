@@ -40,7 +40,7 @@ const container = {
 
 const item = {
   hidden: { opacity: 0, y: 20 },
-  show: { opacity: 1, y: 0, transition: { type: "spring", damping: 15 } },
+  show: { opacity: 1, y: 0, transition: { type: "spring" as const, damping: 15 } },
 };
 
 const statCards = [
@@ -286,7 +286,7 @@ export default function Dashboard() {
                 </div>
                 <div className="text-center">
                   <FileText className="size-4 mx-auto text-muted-foreground mb-1" />
-                  <div className="text-2xl font-bold">{ragStats?.total_documents ?? "—"}</div>
+                  <div className="text-2xl font-bold">{ragStats?.total_documents_ingested ?? "—"}</div>
                   <div className="text-xs text-muted-foreground">Documents</div>
                 </div>
                 <div className="text-center">

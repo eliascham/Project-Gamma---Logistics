@@ -33,6 +33,67 @@ BOL_FIELDS = [
     "volume", "volume_unit", "freight_charges", "freight_payment_type",
 ]
 
+COMMERCIAL_INVOICE_FIELDS = [
+    "invoice_number", "invoice_date", "currency",
+    "country_of_origin", "incoterms", "total_amount",
+]
+
+PURCHASE_ORDER_FIELDS = [
+    "po_number", "po_date", "currency", "total_amount",
+    "delivery_date", "shipping_method",
+]
+
+PACKING_LIST_FIELDS = [
+    "packing_list_number", "date", "invoice_number", "po_number",
+    "total_packages", "total_gross_weight", "total_net_weight",
+]
+
+ARRIVAL_NOTICE_FIELDS = [
+    "notice_number", "notice_date", "bol_number", "vessel_name",
+    "eta", "total_charges", "currency",
+]
+
+AIR_WAYBILL_FIELDS = [
+    "awb_number", "awb_type", "airline_name", "airport_of_departure",
+    "airport_of_destination", "pieces", "gross_weight",
+    "chargeable_weight", "total_charges", "currency",
+]
+
+DEBIT_CREDIT_NOTE_FIELDS = [
+    "note_number", "note_type", "note_date",
+    "original_invoice_number", "currency", "total_amount",
+]
+
+CUSTOMS_ENTRY_FIELDS = [
+    "entry_number", "entry_type", "summary_date", "port_code",
+    "country_of_origin", "total_entered_value", "total_duty", "total_amount",
+]
+
+PROOF_OF_DELIVERY_FIELDS = [
+    "pod_number", "delivery_date", "carrier_name",
+    "bol_number", "total_packages", "receiver_name", "condition",
+]
+
+CERTIFICATE_OF_ORIGIN_FIELDS = [
+    "certificate_number", "issue_date", "certificate_type",
+    "country_of_origin", "country_of_destination", "origin_criterion",
+]
+
+# Registry mapping document type to (scalar_fields, line_items_field)
+_EVAL_FIELDS_REGISTRY: dict[str, tuple[list[str], str | None]] = {
+    "freight_invoice": (FREIGHT_INVOICE_FIELDS, "line_items"),
+    "bill_of_lading": (BOL_FIELDS, None),
+    "commercial_invoice": (COMMERCIAL_INVOICE_FIELDS, "line_items"),
+    "purchase_order": (PURCHASE_ORDER_FIELDS, "line_items"),
+    "packing_list": (PACKING_LIST_FIELDS, "items"),
+    "arrival_notice": (ARRIVAL_NOTICE_FIELDS, "charges"),
+    "air_waybill": (AIR_WAYBILL_FIELDS, "other_charges"),
+    "debit_credit_note": (DEBIT_CREDIT_NOTE_FIELDS, "line_items"),
+    "customs_entry": (CUSTOMS_ENTRY_FIELDS, "line_items"),
+    "proof_of_delivery": (PROOF_OF_DELIVERY_FIELDS, "items"),
+    "certificate_of_origin": (CERTIFICATE_OF_ORIGIN_FIELDS, "items"),
+}
+
 
 @dataclass
 class EvalDocumentResult:
@@ -84,9 +145,7 @@ class EvalReport:
 
 def _get_fields_for_type(doc_type: str) -> tuple[list[str], str | None]:
     """Get the scalar fields and line items field for a document type."""
-    if doc_type == "bill_of_lading":
-        return BOL_FIELDS, None  # BOLs don't have line_items
-    return FREIGHT_INVOICE_FIELDS, "line_items"
+    return _EVAL_FIELDS_REGISTRY.get(doc_type, (FREIGHT_INVOICE_FIELDS, "line_items"))
 
 
 class ExtractionEvaluator:

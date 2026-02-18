@@ -1,7 +1,9 @@
 """
 Document classifier using Claude Haiku for fast, cheap pre-screening.
 
-Classifies logistics documents into types (freight invoice, BOL, etc.)
+Classifies logistics documents into types (freight invoice, BOL, commercial
+invoice, purchase order, packing list, arrival notice, air waybill,
+debit/credit note, customs entry, proof of delivery, certificate of origin)
 before running the full extraction pipeline with Sonnet.
 """
 
@@ -15,8 +17,17 @@ from app.schemas.extraction import DocumentType
 logger = logging.getLogger("gamma.classifier")
 
 CLASSIFICATION_PROMPT = """Classify this logistics document into one of the following types:
-- freight_invoice: A freight or shipping invoice with charges, line items, and payment amounts
-- bill_of_lading: A Bill of Lading (BOL/B/L) with shipping details, cargo info, and carrier information
+- freight_invoice: A freight or shipping invoice from a carrier with transport charges, line items, and payment amounts. Focus: carrier fees, ocean/air/ground transport charges.
+- bill_of_lading: A Bill of Lading (BOL/B/L) with shipping details, cargo info, container numbers, and carrier information. Includes vessel/voyage details.
+- commercial_invoice: A commercial/trade invoice for goods with buyer/seller, HS codes, Incoterms, country of origin. Focus: goods value, not transport charges.
+- purchase_order: A Purchase Order (PO) from a buyer to supplier with ordered items, delivery dates, and payment terms. Contains PO number prominently.
+- packing_list: A packing list with package counts, weights, dimensions, carton/pallet details. Accompanies a commercial invoice for customs. No monetary values for goods.
+- arrival_notice: An arrival notice from a carrier or forwarder notifying of incoming shipment. Contains ETA, charges due, and cargo release requirements.
+- air_waybill: An Air Waybill (AWB/HAWB) with 11-digit AWB number, airline info, airport codes, flight details, and air cargo specifics.
+- debit_credit_note: A debit note or credit note referencing an original invoice, with adjustment amounts and reasons for the adjustment.
+- customs_entry: A CBP 7501 customs entry summary with entry number, HTS codes, duty amounts, and US customs/import data.
+- proof_of_delivery: A proof of delivery (POD) confirming goods were received, with delivery date/time, receiver signature, and delivery condition.
+- certificate_of_origin: A certificate of origin (CO) certifying where goods were manufactured, with origin criteria, issuing authority, and HS codes.
 - unknown: Cannot determine the document type
 
 Respond with ONLY a JSON object: {"document_type": "<type>"}"""

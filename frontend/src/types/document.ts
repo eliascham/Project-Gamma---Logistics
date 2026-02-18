@@ -1,5 +1,17 @@
 export type DocumentStatus = "pending" | "processing" | "extracted" | "failed";
-export type DocumentType = "freight_invoice" | "bill_of_lading" | "unknown";
+export type DocumentType =
+  | "freight_invoice"
+  | "bill_of_lading"
+  | "commercial_invoice"
+  | "purchase_order"
+  | "packing_list"
+  | "arrival_notice"
+  | "air_waybill"
+  | "debit_credit_note"
+  | "customs_entry"
+  | "proof_of_delivery"
+  | "certificate_of_origin"
+  | "unknown";
 
 export interface Document {
   id: string;

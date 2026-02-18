@@ -108,6 +108,43 @@ DEFAULT_RULES = [
         "gl_account": "5100-FREIGHT",
         "priority": 10,
     },
+    # Phase 5: New rules for commercial invoices, customs entries, and accessorial charges
+    {
+        "rule_name": "Import Duties",
+        "description": "Customs duties and tariffs on imported goods",
+        "match_pattern": "duty, import duty, customs duty, tariff, ad valorem",
+        "project_code": "CUSTOMS-OPS-002",
+        "cost_center": "COMPLIANCE",
+        "gl_account": "5220-DUTIES",
+        "priority": 11,
+    },
+    {
+        "rule_name": "Merchandise Processing Fee",
+        "description": "US CBP merchandise processing fee (MPF)",
+        "match_pattern": "MPF, merchandise processing, processing fee",
+        "project_code": "CUSTOMS-OPS-002",
+        "cost_center": "COMPLIANCE",
+        "gl_account": "5230-FEES",
+        "priority": 12,
+    },
+    {
+        "rule_name": "Harbor Maintenance Fee",
+        "description": "US harbor maintenance fee (HMF) on ocean imports",
+        "match_pattern": "HMF, harbor maintenance, harbor fee",
+        "project_code": "PORT-OPS-009",
+        "cost_center": "LOGISTICS-OPS",
+        "gl_account": "5230-FEES",
+        "priority": 13,
+    },
+    {
+        "rule_name": "Accessorial Charges",
+        "description": "Additional delivery service charges",
+        "match_pattern": "liftgate, inside delivery, residential, reweigh, pallet jack, accessorial",
+        "project_code": "DOM-TRANS-003",
+        "cost_center": "LOGISTICS-OPS",
+        "gl_account": "5140-ACCESSORIAL",
+        "priority": 14,
+    },
 ]
 
 

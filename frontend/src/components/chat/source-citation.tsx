@@ -44,18 +44,18 @@ export function SourceCitation({ sources }: { sources: SourceChunk[] }) {
                 <span
                   className={cn(
                     "tabular-nums font-medium",
-                    source.similarity >= 0.85
+                    source.relevance_score >= 0.85
                       ? "text-emerald-600 dark:text-emerald-400"
-                      : source.similarity >= 0.7
+                      : source.relevance_score >= 0.7
                         ? "text-amber-600 dark:text-amber-400"
                         : "text-muted-foreground"
                   )}
                 >
-                  {Math.round(source.similarity * 100)}% match
+                  {Math.round(source.relevance_score * 100)}% match
                 </span>
               </div>
               <p className="text-muted-foreground leading-relaxed whitespace-pre-wrap">
-                {source.content}
+                {source.snippet}
               </p>
             </div>
           ))}

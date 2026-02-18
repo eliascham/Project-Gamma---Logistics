@@ -12,11 +12,21 @@ import {
   Play,
   DollarSign,
   Database,
+  Link2,
+  Sparkles,
 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { Separator } from "@/components/ui/separator";
 import { PageTransition } from "@/components/shared/page-transition";
 import { DocumentDetailSkeleton } from "@/components/shared/loading-skeleton";
@@ -29,13 +39,25 @@ import {
   triggerExtraction,
   triggerAllocation,
   ingestDocument,
+  getRelationships,
+  detectRelationships,
 } from "@/lib/api-client";
 import type { Document } from "@/types/document";
 import type { ExtractionResponse } from "@/types/extraction";
+import type { DocumentRelationship, RelationshipType } from "@/types/relationship";
 
 const docTypeLabels: Record<string, string> = {
   freight_invoice: "Freight Invoice",
   bill_of_lading: "Bill of Lading",
+  commercial_invoice: "Commercial Invoice",
+  purchase_order: "Purchase Order",
+  packing_list: "Packing List",
+  arrival_notice: "Arrival Notice",
+  air_waybill: "Air Waybill",
+  debit_credit_note: "Debit/Credit Note",
+  customs_entry: "CBP 7501 Customs Entry",
+  proof_of_delivery: "Proof of Delivery",
+  certificate_of_origin: "Certificate of Origin",
   unknown: "Unknown",
 };
 
@@ -61,6 +83,17 @@ function formatDate(dateStr: string): string {
   });
 }
 
+const relTypeBadgeClass: Record<RelationshipType, string> = {
+  fulfills: "bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300",
+  invoices: "bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300",
+  supports: "bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300",
+  adjusts: "bg-orange-100 text-orange-700 dark:bg-orange-900 dark:text-orange-300",
+  certifies: "bg-purple-100 text-purple-700 dark:bg-purple-900 dark:text-purple-300",
+  clears: "bg-cyan-100 text-cyan-700 dark:bg-cyan-900 dark:text-cyan-300",
+  confirms: "bg-emerald-100 text-emerald-700 dark:bg-emerald-900 dark:text-emerald-300",
+  notifies: "bg-yellow-100 text-yellow-700 dark:bg-yellow-900 dark:text-yellow-300",
+};
+
 export default function DocumentDetailPage() {
   const params = useParams();
   const router = useRouter();
@@ -73,6 +106,11 @@ export default function DocumentDetailPage() {
   const [allocating, setAllocating] = useState(false);
   const [ingesting, setIngesting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Related documents state
+  const [relationships, setRelationships] = useState<DocumentRelationship[]>([]);
+  const [relLoading, setRelLoading] = useState(true);
+  const [detectingRel, setDetectingRel] = useState(false);
 
   const { status, setStatus } = useExtractionPolling({
     documentId,
@@ -118,6 +156,35 @@ export default function DocumentDetailPage() {
         .catch(() => {});
     }
   }, [status, extraction, documentId]);
+
+  // Load related documents
+  useEffect(() => {
+    async function loadRelationships() {
+      try {
+        const rels = await getRelationships(documentId);
+        setRelationships(rels);
+      } catch {
+        // Relationships may not exist yet
+      } finally {
+        setRelLoading(false);
+      }
+    }
+    loadRelationships();
+  }, [documentId]);
+
+  async function handleDetectRelationships() {
+    setDetectingRel(true);
+    try {
+      await detectRelationships(documentId);
+      const rels = await getRelationships(documentId);
+      setRelationships(rels);
+      toast.success("Relationship detection complete!");
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Detection failed");
+    } finally {
+      setDetectingRel(false);
+    }
+  }
 
   async function handleRunExtraction() {
     setExtracting(true);
@@ -368,6 +435,96 @@ export default function DocumentDetailPage() {
             </motion.div>
           </div>
         </div>
+
+        {/* Related Documents */}
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.3 }}
+        >
+          <Card>
+            <CardHeader className="pb-3">
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-base flex items-center gap-2">
+                  <Link2 className="size-4" />
+                  Related Documents
+                </CardTitle>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="gap-2"
+                  onClick={handleDetectRelationships}
+                  disabled={detectingRel}
+                >
+                  {detectingRel ? (
+                    <Loader2 className="size-3 animate-spin" />
+                  ) : (
+                    <Sparkles className="size-3" />
+                  )}
+                  Auto-Detect
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent>
+              {relLoading ? (
+                <div className="flex items-center justify-center py-6">
+                  <Loader2 className="size-5 animate-spin text-muted-foreground" />
+                </div>
+              ) : relationships.length === 0 ? (
+                <p className="text-sm text-muted-foreground text-center py-6">
+                  No related documents found
+                </p>
+              ) : (
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Related Document</TableHead>
+                      <TableHead>Relationship</TableHead>
+                      <TableHead>Direction</TableHead>
+                      <TableHead>Confidence</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {relationships.map((rel) => {
+                      const isSource = rel.source_document_id === documentId;
+                      const relatedId = isSource ? rel.target_document_id : rel.source_document_id;
+                      const badgeClass = relTypeBadgeClass[rel.relationship_type] || "";
+                      const confidencePercent = Math.round(rel.confidence * 100);
+                      return (
+                        <TableRow key={rel.id} className="transition-colors hover:bg-accent/50">
+                          <TableCell>
+                            <span className="font-mono text-sm" title={relatedId}>
+                              {relatedId.length > 12 ? `${relatedId.slice(0, 8)}...` : relatedId}
+                            </span>
+                          </TableCell>
+                          <TableCell>
+                            <Badge variant="secondary" className={badgeClass}>
+                              {rel.relationship_type}
+                            </Badge>
+                          </TableCell>
+                          <TableCell className="text-muted-foreground">
+                            {isSource ? "\u2192 outgoing" : "\u2190 incoming"}
+                          </TableCell>
+                          <TableCell>
+                            <span className={`tabular-nums font-medium ${
+                              confidencePercent >= 80
+                                ? "text-green-600 dark:text-green-400"
+                                : confidencePercent >= 60
+                                  ? "text-yellow-600 dark:text-yellow-400"
+                                  : "text-red-600 dark:text-red-400"
+                            }`}>
+                              {confidencePercent}%
+                            </span>
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
+                  </TableBody>
+                </Table>
+              )}
+            </CardContent>
+          </Card>
+        </motion.div>
       </div>
     </PageTransition>
   );

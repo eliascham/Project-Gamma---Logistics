@@ -20,7 +20,7 @@ Project Gamma turns logistics documents (freight invoices, bills of lading) into
 - **Multi-format parsing** — PDF (via pdfplumber), images/scans (via Claude Vision), CSV
 - **Auto-classification** — Claude Haiku pre-screens documents by type (fast and cheap)
 - **2-pass extraction** — Claude Sonnet extracts structured data, then self-reviews for accuracy
-- **Supported document types:** Freight Invoices, Bills of Lading
+- **Supported document types:** Freight Invoices, Bills of Lading, Commercial Invoices, Purchase Orders, Packing Lists, Arrival Notices, Air Waybills, Debit/Credit Notes, CBP 7501 Customs Entries, Proof of Delivery, Certificates of Origin
 
 ### Cost Allocation
 - **AI-powered mapping** — Claude maps each invoice line item to project codes, cost centers, and GL accounts
@@ -685,7 +685,7 @@ Available tools:
 - [x] **Phase 2** — Document Intelligence (multi-format parsing, classification, 2-pass extraction, eval suite)
 - [x] **Phase 3** — Cost Allocation & RAG (business rules, confidence scoring, Voyage AI embeddings, Q&A with citations)
 - [x] **Phase 4** — Guardrails & Production Hardening (audit logging, HITL workflow, anomaly detection, reconciliation, MCP server, eval improvements, monitoring)
-- [ ] **Phase 5** — Document Intelligence Expansion (see below)
+- [x] **Phase 5** — Document Intelligence Expansion (9 new document types, document relationships, 3-way matching, invoice variants, 169 tests)
 - [ ] **Phase 6** — Enterprise Readiness (see below)
 - [ ] **Phase 7** — AI Differentiators (see below)
 - [ ] **Phase 8** — Platform & Integrations (see below)
@@ -766,7 +766,7 @@ Gamma currently supports 2 document types; a single shipment generates 15-25+. T
 ### Recommended Execution Order
 
 ```
-Phase 5 (Now):     Commercial Invoice + PO + Packing List + Document Relationships + 3-Way Matching
+Phase 5 (Complete): Commercial Invoice + PO + Packing List + 6 more doc types + Document Relationships + 3-Way Matching
 Phase 6 (Next):    Multi-tenancy + RBAC + Configurable Approvals + Accounting Exports
 Phase 7 (Then):    Smart GL Learning + Dispute Detection + NL Analytics + Email Ingestion
 Phase 8 (Later):   EDI + TMS Connectors + Notifications + Batch Processing

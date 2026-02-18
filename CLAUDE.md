@@ -47,6 +47,15 @@ cd backend && python -m app.mcp_server
 
 # Run RAG eval
 curl -X POST "http://localhost:8000/api/v1/eval/run?eval_type=rag"
+
+# Run 3-way PO-BOL-Invoice matching
+curl -X POST http://localhost:8000/api/v1/matching/run -H "Content-Type: application/json" -d '{"po_document_id": "...", "invoice_document_id": "..."}'
+
+# Auto-detect document relationships
+curl -X POST http://localhost:8000/api/v1/relationships/detect/{document_id}
+
+# List document relationships
+curl http://localhost:8000/api/v1/relationships/?document_id={document_id}
 ```
 
 ## Architecture
@@ -133,6 +142,16 @@ backend/
     reconciliation_engine/ # Cross-system reconciliation
       matchers.py        # Pure matching functions
       service.py         # ReconciliationEngine
+    matching_engine/       # Phase 5: 3-way PO-BOL-Invoice matching
+      matchers.py        # Pure matching functions (numeric, party name, description, line items)
+      service.py         # ThreeWayMatchingService orchestrator
+    models/
+      document_relationship.py # DocumentRelationship ORM model + RelationshipType enum
+    schemas/
+      document_relationship.py # Pydantic request/response models for relationships
+    api/v1/
+      relationships.py   # CRUD + auto-detect endpoints for document relationships
+      matching.py        # 3-way matching run + auto-match endpoints
     mcp_server/          # MCP server for Claude Desktop
       server.py          # LogisticsMCPServer (4 tools)
       data_layer.py      # MCPDataLayer (DB queries)
@@ -146,10 +165,13 @@ backend/
     test_anomaly.py          # Pure detector functions, anomaly flagging tests
     test_reconciliation.py   # Matcher functions, reconciliation engine tests
     test_mcp.py              # MockDataGenerator determinism, data layer tests
-  alembic/versions/      # 001_initial + 002_doc_intelligence + 003_cost_allocation_rag + 004_guardrails
+    test_phase5_schemas.py   # All 9 new extraction schemas + shared models
+    test_phase5_matching.py  # 3-way matching: numeric, party, description, line items, full match
+    test_phase5_relationships.py # Document relationship model, schemas, reference maps
+  alembic/versions/      # 001_initial + 002_doc_intelligence + 003_cost_allocation_rag + 004_guardrails + 005_phase5_doc_relationships
 ```
 
-## Current Phase: 4 Complete
+## Current Phase: 5 Complete
 
 ### Phase 1 (Complete): Foundation
 - Project scaffold, Docker Compose, FastAPI skeleton
@@ -189,6 +211,25 @@ backend/
 - Frontend pages: Review Queue, Anomalies, Reconciliation, Audit Log, Data Explorer, Dashboard widgets
 - Premium login page — Google + Microsoft SSO buttons (UI-only mock auth), email/password form
 - Auth-gated app shell — localStorage session, auto-redirect to /login, user info + logout in sidebar
+
+### Phase 5 (Complete): Document Intelligence Expansion
+- **9 new document type schemas:** Commercial Invoice, Purchase Order, Packing List, Arrival Notice, Air Waybill, Debit/Credit Note, CBP 7501, Proof of Delivery, Certificate of Origin
+- **Shared `PartyInfo` sub-model** for party blocks across all new types
+- **`EXTRACTION_MODEL_REGISTRY`** maps DocumentType to Pydantic model for validation
+- **ClaudeService refactored** to registry pattern — `_SCHEMA_REGISTRY` dict, `_validate_extraction()` helper
+- **Classifier updated** with 11 document types and discriminating signals for each
+- **Document Relationship Model:** `DocumentRelationship` table + `RelationshipType` enum (fulfills, invoices, supports, adjusts, certifies, clears, confirms, notifies)
+- **Auto-detection:** Extracts reference numbers (PO, BOL, AWB, invoice) and creates relationships automatically
+- **Invoice variant classification:** `invoice_variant` field on FreightInvoice and CommercialInvoice; `DemurrageDetail` sub-model for D&D invoices
+- **3-way PO-BOL-Invoice matching engine:** Pure matching functions (numeric with tolerance, party name fuzzy, description word-overlap, line item pairing) + `ThreeWayMatchingService` orchestrator
+- **Cost allocation expanded:** Commercial invoices, CBP 7501, debit/credit notes now allocable; 4 new rules (Import Duties, MPF, HMF, Accessorial)
+- **Reference number normalization:** Auto-detect strips prefixes (PO-, INV-, BOL-, AWB-), hyphens, dots, spaces, leading zeros for fuzzy matching
+- **Alembic migration 005:** `document_relationships` table with indexes + unique constraint (source, target, type)
+- **Cost allocation dispatch:** Explicit `doc_type` parameter (no field-sniffing)
+- **Eval harness expanded:** Field lists for all 11 document types with registry pattern
+- **Self-referencing relationship prevention** in create endpoint
+- **Paginated relationship listing** (limit/offset with max 500)
+- **169 tests total:** 78 existing (0 regressions) + 27 schema + 28 matching + 23 relationship + 91 stress tests (security, edge cases, large documents)
 
 ## API Endpoints
 
@@ -237,6 +278,17 @@ backend/
 - `GET /api/v1/reconciliation/{id}` — Get run with records
 - `GET /api/v1/reconciliation/stats` — Reconciliation statistics
 
+### Document Relationships
+- `POST /api/v1/relationships/` — Create a document relationship manually
+- `GET /api/v1/relationships/` — List relationships (filterable by document_id, relationship_type)
+- `GET /api/v1/relationships/{id}` — Get a single relationship
+- `DELETE /api/v1/relationships/{id}` — Delete a relationship
+- `POST /api/v1/relationships/detect/{document_id}` — Auto-detect relationships from extraction references
+
+### 3-Way Matching
+- `POST /api/v1/matching/run` — Run 3-way PO-BOL-Invoice matching (provide at least 2 of 3 document IDs)
+- `POST /api/v1/matching/auto/{document_id}` — Auto-detect related documents and run matching
+
 ### MCP Server & Data Explorer
 - `GET /api/v1/mcp/status` — MCP server status + available tools
 - `POST /api/v1/mcp/seed` — Seed mock data
@@ -267,13 +319,13 @@ See `.env.example` for all required variables. Key ones:
 
 ## Roadmap: Phases 5-8 (Planned)
 
-### Phase 5: Document Intelligence Expansion
-- **P0:** Commercial Invoice, Purchase Order, Packing List extraction schemas
-- **P1:** Arrival Notice, Air Waybill (AWB/HAWB), Debit/Credit Notes
-- **P2:** CBP 7501 (Customs Entry), Proof of Delivery, Certificate of Origin
-- **Document Relationship Model:** `DocumentRelationship` table linking source → target with relationship_type, reference_field, confidence
-- **Invoice variant classification:** detention/demurrage, accessorial, consolidated, pro-forma, debit/credit
-- **3-way PO-BOL-Invoice matching engine**
+### Phase 5: Document Intelligence Expansion (Complete)
+- ~~**P0:** Commercial Invoice, Purchase Order, Packing List extraction schemas~~
+- ~~**P1:** Arrival Notice, Air Waybill (AWB/HAWB), Debit/Credit Notes~~
+- ~~**P2:** CBP 7501 (Customs Entry), Proof of Delivery, Certificate of Origin~~
+- ~~**Document Relationship Model:** `DocumentRelationship` table linking source -> target with relationship_type, reference_field, confidence~~
+- ~~**Invoice variant classification:** detention/demurrage, accessorial, consolidated, pro-forma, debit/credit~~
+- ~~**3-way PO-BOL-Invoice matching engine**~~
 
 ### Phase 6: Enterprise Readiness
 - **P0:** Multi-tenancy (`tenant_id` on every table + PostgreSQL Row-Level Security)
@@ -329,3 +381,10 @@ See `.env.example` for all required variables. Key ones:
 - Login page is at `/login` with its own layout (no sidebar/header) — `AppShell` component conditionally renders the app shell
 - Auth state managed by `AuthProvider` in `lib/auth-context.tsx` — persists to `localStorage` key `gamma-auth`
 - Mock SSO: login sets user in context (no real OAuth); swap `AuthProvider` for real OAuth provider in production
+- PackingListExtraction uses `packing_date` (not `date`) to avoid shadowing Python's `date` type import
+- `EXTRACTION_MODEL_REGISTRY` in `schemas/extraction.py` maps DocumentType to Pydantic model class — used by `_validate_extraction()` in claude_service.py
+- `_SCHEMA_REGISTRY` in `claude_service.py` maps DocumentType to JSON template string — used by `_get_schema_for_type()`
+- Cost allocation now accepts 4 document types: freight_invoice, commercial_invoice, customs_entry, debit_credit_note
+- 3-way matching tolerances are configurable via `MATCH_TOLERANCES` dict in `matching_engine/matchers.py`
+- Document relationship auto-detection searches extraction JSON for reference numbers — uses raw SQL queries against extractions table
+- Phase 5 adds 14 allocation rules total (10 original + 4 new: Import Duties, MPF, HMF, Accessorial)

@@ -43,3 +43,8 @@ def get_reconciliation_engine():
 def get_audit_report_generator():
     from app.audit_generator.report_generator import AuditReportGenerator
     return AuditReportGenerator(settings)
+
+
+def get_three_way_matching_service():
+    from app.matching_engine.service import ThreeWayMatchingService
+    return ThreeWayMatchingService()

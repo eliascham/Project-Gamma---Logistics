@@ -1,0 +1,24 @@
+{
+  "document_type": "freight_invoice",
+  "extraction": {
+    "invoice_number": "FI-BADMATH-001",
+    "invoice_date": "2024-10-15",
+    "vendor_name": "",
+    "total_amount": 5000.00,
+    "subtotal": 5000.00,
+    "tax_amount": 0,
+    "currency": "USD",
+    "line_items": [
+      {"description": "Ocean Freight", "quantity": 2, "unit": "TEU", "unit_price": 1800.00, "total": 4000.00},
+      {"description": "THC", "quantity": 2, "unit": "TEU", "unit_price": 150.00, "total": 300.00}
+    ]
+  },
+  "validation_annotations": {
+    "expected_clean": false,
+    "expected_issues": [
+      {"rule": "missing_required", "field": "vendor_name"},
+      {"rule": "line_item_math", "field": "line_items.0.total"},
+      {"rule": "totals_mismatch", "field": "subtotal"}
+    ]
+  }
+}

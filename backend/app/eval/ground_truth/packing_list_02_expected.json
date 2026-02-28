@@ -1,0 +1,82 @@
+{
+  "document_type": "packing_list",
+  "extraction": {
+    "packing_list_number": "PL-2024-12090",
+    "packing_date": "2024-11-28",
+    "invoice_number": "INV-GM-2024-0891",
+    "po_number": "PO-2024-GM-4471",
+    "seller": {
+      "name": "Siam Parts Manufacturing Co., Ltd",
+      "address": "99/1 Moo 5, Bangna-Trad Road",
+      "city": "Bangpakong",
+      "state": "Chachoengsao",
+      "country": "Thailand",
+      "postal_code": "24130"
+    },
+    "buyer": {
+      "name": "Global Motors Assembly Inc.",
+      "address": "28000 Chrysler Drive",
+      "city": "Detroit",
+      "state": "MI",
+      "country": "USA",
+      "postal_code": "48326"
+    },
+    "ship_from": {
+      "city": "Bangkok",
+      "country": "Thailand"
+    },
+    "ship_to": {
+      "city": "Detroit",
+      "state": "MI",
+      "country": "USA"
+    },
+    "container_numbers": ["TCLU9988771", "TCLU9988772", "TCLU9988773"],
+    "marks_and_numbers": "GLOBAL MOTORS / DETROIT / C/No. 1-12",
+    "items": [
+      {
+        "item_number": "RGS-4420",
+        "description": "Rubber Gasket Set",
+        "quantity": 2000.0,
+        "package_type": "pallet",
+        "package_count": 4,
+        "gross_weight": 400.0,
+        "net_weight": 380.0,
+        "dimensions": "120x100x80 cm"
+      },
+      {
+        "item_number": "SMB-1175",
+        "description": "Steel Mounting Bracket",
+        "quantity": 500.0,
+        "package_type": "pallet",
+        "package_count": 3,
+        "gross_weight": 850.0,
+        "net_weight": 820.0,
+        "dimensions": "100x100x120 cm"
+      },
+      {
+        "item_number": "WHA-3308",
+        "description": "Wiring Harness Assembly",
+        "quantity": 300.0,
+        "package_type": "pallet",
+        "package_count": 2,
+        "gross_weight": 180.0,
+        "net_weight": 165.0
+      },
+      {
+        "item_number": "PIT-2260",
+        "description": "Plastic Interior Trim Panel",
+        "quantity": 400.0,
+        "package_type": "pallet",
+        "package_count": 3,
+        "gross_weight": 280.0,
+        "net_weight": 260.0,
+        "dimensions": "120x100x100 cm"
+      }
+    ],
+    "total_packages": 12,
+    "total_gross_weight": 1710.0,
+    "total_net_weight": 1625.0,
+    "weight_unit": "kg",
+    "notes": "All pallets stretch-wrapped and banded per GM Packaging Guidelines Rev. 4. Steel brackets on reinforced pallets due to weight."
+  }
+}

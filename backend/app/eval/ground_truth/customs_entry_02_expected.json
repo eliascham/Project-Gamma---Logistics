@@ -1,0 +1,65 @@
+{
+  "document_type": "customs_entry",
+  "extraction": {
+    "entry_number": "A98-7654321",
+    "entry_type": "01",
+    "summary_date": "2024-10-28",
+    "entry_date": "2024-10-22",
+    "port_code": "1703",
+    "surety_number": "074",
+    "bond_type": "Single Transaction",
+    "importing_carrier": "YMLU",
+    "mode_of_transport": "Ocean",
+    "country_of_origin": "Vietnam",
+    "exporting_country": "Vietnam",
+    "import_date": "2024-10-20",
+    "importer_number": "58-1234567",
+    "importer_name": "Southern Steel Distributors LLC",
+    "consignee_number": "58-1234567",
+    "consignee_name": "Southern Steel Distributors LLC",
+    "bol_or_awb": "YMLU-HCM2024100388",
+    "line_items": [
+      {
+        "line_number": 1,
+        "hts_number": "7306.30.5028",
+        "description": "Welded steel pipe",
+        "country_of_origin": "Vietnam",
+        "quantity": 50000.0,
+        "unit": "kg",
+        "entered_value": 75000.0,
+        "duty_rate": 0.0,
+        "duty_amount": 0.0,
+        "ad_cvd_rate": "25.76%",
+        "ad_cvd_amount": 19320.0
+      },
+      {
+        "line_number": 2,
+        "hts_number": "7307.19.9090",
+        "description": "Steel pipe fittings",
+        "country_of_origin": "Vietnam",
+        "quantity": 5000.0,
+        "unit": "kg",
+        "entered_value": 12500.0,
+        "duty_rate": 5.0,
+        "duty_amount": 625.0
+      },
+      {
+        "line_number": 3,
+        "hts_number": "7318.15.2065",
+        "description": "Steel bolts and fasteners",
+        "country_of_origin": "Vietnam",
+        "quantity": 2000.0,
+        "unit": "kg",
+        "entered_value": 8000.0,
+        "duty_rate": 3.4,
+        "duty_amount": 272.0
+      }
+    ],
+    "total_entered_value": 95500.0,
+    "total_duty": 897.0,
+    "total_tax": 0.0,
+    "total_other": 19367.50,
+    "total_amount": 20264.50,
+    "notes": "Line 1 subject to AD order A-552-826. Importer has posted single transaction bond for this entry. All goods require steel import monitoring (SIM) license. CBP may request redelivery for further examination."
+  }
+}

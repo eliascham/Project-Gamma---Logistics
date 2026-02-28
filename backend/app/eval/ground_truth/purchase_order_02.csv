@@ -1,0 +1,32 @@
+PURCHASE ORDER
+
+PO #: PO-2024-GM-4471
+Date: October 1, 2024
+
+FROM (BUYER):
+Global Motors Assembly Inc.
+28000 Chrysler Drive
+Detroit, MI 48326, USA
+
+TO (SUPPLIER):
+Siam Parts Manufacturing Co., Ltd
+99/1 Moo 5, Bangna-Trad Road
+Bangpakong, Chachoengsao 24130, Thailand
+
+Currency: USD
+Incoterms: FOB Bangkok
+Requested Delivery: December 15, 2024
+Ship Via: Ocean
+
+LINE ITEMS
+Line,Part No,Description,Qty,Unit,Unit Price (USD),Total (USD)
+1,RGS-4420,Rubber Gasket Set,2000,pcs,0.85,1700.00
+2,SMB-1175,Steel Mounting Bracket,500,pcs,4.20,2100.00
+3,WHA-3308,Wiring Harness Assembly,300,pcs,15.50,4650.00
+4,PIT-2260,Plastic Interior Trim Panel,400,pcs,8.00,3200.00
+
+Subtotal: $11,650.00
+Tax: $0.00
+Total: $11,650.00
+
+Notes: All parts must meet GM QS-9000 quality standards. Packing per GM Packaging Guidelines Rev. 4. Certificate of compliance required with shipment.

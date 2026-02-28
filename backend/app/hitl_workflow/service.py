@@ -141,6 +141,127 @@ class HITLService:
 
         return item
 
+    async def update_fields(
+        self,
+        db: AsyncSession,
+        item_id: uuid.UUID,
+        *,
+        updated_by: str = "user",
+        **fields,
+    ) -> ReviewItem:
+        """Update editable fields on a review item.
+
+        Allowed fields: title, description, assigned_to, severity,
+        dollar_amount, review_metadata.
+        """
+        EDITABLE_FIELDS = {
+            "title", "description", "assigned_to", "severity",
+            "dollar_amount", "review_metadata",
+        }
+
+        result = await db.execute(
+            select(ReviewItem).where(ReviewItem.id == item_id)
+        )
+        item = result.scalar_one_or_none()
+        if item is None:
+            raise ValueError(f"Review item {item_id} not found")
+
+        previous_state = {}
+        new_state = {}
+
+        for field_name, value in fields.items():
+            if field_name not in EDITABLE_FIELDS:
+                continue
+            if value is None:
+                continue
+            old_val = getattr(item, field_name, None)
+            previous_state[field_name] = old_val
+            setattr(item, field_name, value)
+            new_state[field_name] = value
+
+        if not new_state:
+            return item
+
+        item.updated_at = datetime.now(timezone.utc)
+        await db.flush()
+
+        await AuditService.log_event(
+            db,
+            event_type="REVIEW_ITEM_UPDATED",
+            entity_type="review_item",
+            entity_id=item.id,
+            action="update_fields",
+            actor=updated_by,
+            actor_type="user",
+            previous_state=previous_state,
+            new_state=new_state,
+        )
+
+        return item
+
+    async def create_exception_task(
+        self,
+        db: AsyncSession,
+        parent_id: uuid.UUID,
+        *,
+        title: str,
+        description: str | None = None,
+        assigned_to: str | None = None,
+        severity: str = "medium",
+        created_by: str = "user",
+    ) -> ReviewItem:
+        """Create an exception task linked to a parent review item.
+
+        Exception tasks are follow-up investigation items created when
+        a reviewer identifies something that needs further action.
+        """
+        # Verify parent exists
+        result = await db.execute(
+            select(ReviewItem).where(ReviewItem.id == parent_id)
+        )
+        parent = result.scalar_one_or_none()
+        if parent is None:
+            raise ValueError(f"Parent review item {parent_id} not found")
+
+        task = ReviewItem(
+            id=uuid.uuid4(),
+            status=ReviewStatus.PENDING_REVIEW,
+            item_type=ReviewItemType.EXCEPTION_TASK,
+            entity_id=parent.entity_id,
+            entity_type=parent.entity_type,
+            title=title,
+            description=description,
+            severity=severity,
+            assigned_to=assigned_to,
+            auto_approve_eligible=False,
+            dollar_amount=parent.dollar_amount,
+            review_metadata={
+                "parent_review_id": str(parent_id),
+                "parent_title": parent.title,
+                "created_by": created_by,
+            },
+        )
+        db.add(task)
+        await db.flush()
+
+        await AuditService.log_event(
+            db,
+            event_type="EXCEPTION_TASK_CREATED",
+            entity_type="review_item",
+            entity_id=task.id,
+            action="create_exception",
+            actor=created_by,
+            actor_type="user",
+            new_state={
+                "parent_review_id": str(parent_id),
+                "title": title,
+                "assigned_to": assigned_to,
+                "severity": severity,
+            },
+        )
+
+        return task
+
     async def get_queue(
         self,
         db: AsyncSession,

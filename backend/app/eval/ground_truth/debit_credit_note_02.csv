@@ -1,0 +1,37 @@
+DEBIT NOTE
+
+Note Number: DN-2024-08877
+Note Type: Debit
+Date: December 1, 2024
+
+Original Invoice Number: FI-2024-05529
+Original Invoice Date: November 5, 2024
+
+ISSUER:
+Maersk Line A/S
+Esplanaden 50
+1098 Copenhagen K
+Denmark
+
+RECIPIENT:
+Sunrise Imports Inc.
+8200 NW 36th Street, Suite 400
+Miami, FL 33166, USA
+
+Currency: USD
+
+REASON FOR ADJUSTMENT:
+Container detention charges for containers held beyond free time
+
+LINE ITEMS:
+No.,Description,Quantity,Rate,Adjusted Amount,Reason
+1,Container MSKU7234561 Detention,14 days,$150.00/day,$2,100.00,"Held 14 days past 5-day free time"
+2,Container MSKU7234562 Detention,10 days,$150.00/day,$1,500.00,"Held 10 days past 5-day free time"
+3,Late Documentation Fee,1,flat,$250.00,"Late customs clearance documentation"
+
+Subtotal: $3,850.00
+Tax: $0.00
+Total Debit Amount: $3,850.00
+
+Payment Terms: Due within 15 days of issue
+Notes: Detention charges per contract terms. Free time of 5 days was provided starting from vessel discharge date November 10, 2024. Please remit payment to avoid further charges and potential container holds on future shipments.

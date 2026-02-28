@@ -1,5 +1,8 @@
 """
 Eval endpoints — run extraction accuracy evaluations and view results.
+
+Supports eval types: extraction, rag, classification, validation, confidence.
+Also provides baseline save/load/compare endpoints for regression detection.
 """
 
 import json
@@ -25,7 +28,8 @@ async def run_eval(
     """Run an eval suite against ground truth documents.
 
     Args:
-        eval_type: "extraction" (default) or "rag"
+        eval_type: "extraction" (default), "rag", "classification",
+                   "validation", or "confidence"
     """
     if eval_type == "rag":
         from app.eval.rag_eval import RAGEvaluator
@@ -56,6 +60,113 @@ async def run_eval(
                     "hit_rate": report.hit_rate,
                     "mrr": report.mrr,
                     "answer_accuracy": report.answer_accuracy,
+                    "negative_rejection_rate": report.negative_rejection_rate,
+                }),
+                "model_used": report.model_used,
+            },
+        )
+        await db.flush()
+        return report.to_dict()
+
+    if eval_type == "classification":
+        from app.eval.classification_eval import ClassificationEvaluator
+        evaluator = ClassificationEvaluator(settings)
+        try:
+            report = await evaluator.run()
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"Classification eval failed: {e}")
+
+        eval_id = uuid.uuid4()
+        await db.execute(
+            sa_text("""
+                INSERT INTO eval_results (
+                    id, eval_type, results, document_count,
+                    overall_accuracy, field_scores, model_used, created_at
+                ) VALUES (
+                    :id, :eval_type, CAST(:results AS json), :document_count,
+                    :overall_accuracy, CAST(:field_scores AS json), :model_used, NOW()
+                )
+            """),
+            {
+                "id": eval_id,
+                "eval_type": "classification",
+                "results": json.dumps(report.to_dict(), default=str),
+                "document_count": report.total_documents,
+                "overall_accuracy": report.accuracy,
+                "field_scores": json.dumps({
+                    "accuracy": report.accuracy,
+                    "per_type_accuracy": report.per_type_accuracy,
+                }),
+                "model_used": report.model_used,
+            },
+        )
+        await db.flush()
+        return report.to_dict()
+
+    if eval_type == "validation":
+        from app.eval.validation_eval import ValidationEvaluator
+        evaluator = ValidationEvaluator()
+        try:
+            report = evaluator.run()
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"Validation eval failed: {e}")
+
+        eval_id = uuid.uuid4()
+        await db.execute(
+            sa_text("""
+                INSERT INTO eval_results (
+                    id, eval_type, results, document_count,
+                    overall_accuracy, field_scores, model_used, created_at
+                ) VALUES (
+                    :id, :eval_type, CAST(:results AS json), :document_count,
+                    :overall_accuracy, CAST(:field_scores AS json), :model_used, NOW()
+                )
+            """),
+            {
+                "id": eval_id,
+                "eval_type": "validation",
+                "results": json.dumps(report.to_dict(), default=str),
+                "document_count": report.total_documents,
+                "overall_accuracy": report.overall_f1,
+                "field_scores": json.dumps({
+                    "precision": report.overall_precision,
+                    "recall": report.overall_recall,
+                    "f1": report.overall_f1,
+                }),
+                "model_used": "deterministic",
+            },
+        )
+        await db.flush()
+        return report.to_dict()
+
+    if eval_type == "confidence":
+        from app.eval.confidence_eval import ConfidenceCalibrationEvaluator
+        evaluator = ConfidenceCalibrationEvaluator(settings)
+        try:
+            report = await evaluator.run()
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"Confidence eval failed: {e}")
+
+        eval_id = uuid.uuid4()
+        await db.execute(
+            sa_text("""
+                INSERT INTO eval_results (
+                    id, eval_type, results, document_count,
+                    overall_accuracy, field_scores, model_used, created_at
+                ) VALUES (
+                    :id, :eval_type, CAST(:results AS json), :document_count,
+                    :overall_accuracy, CAST(:field_scores AS json), :model_used, NOW()
+                )
+            """),
+            {
+                "id": eval_id,
+                "eval_type": "confidence",
+                "results": json.dumps(report.to_dict(), default=str),
+                "document_count": report.total_fields,
+                "overall_accuracy": 1.0 - report.ece,  # Lower ECE = better calibration
+                "field_scores": json.dumps({
+                    "ece": report.ece,
+                    "brier_score": report.brier_score,
                 }),
                 "model_used": report.model_used,
             },
@@ -159,3 +270,63 @@ async def get_eval_result(
         "results": results_data,
         "created_at": row[3].isoformat() if row[3] else None,
     }
+
+
+# --- Baseline endpoints ---
+
+
+@router.get("/baseline")
+async def get_baseline():
+    """Get current saved baseline scores."""
+    from app.eval.baseline import load_baseline
+    baseline = load_baseline()
+    if baseline is None:
+        return {"baseline": None, "message": "No baseline saved yet"}
+    return {"baseline": baseline}
+
+
+@router.post("/baseline/save")
+async def save_baseline_endpoint(
+    db: AsyncSession = Depends(get_db),
+):
+    """Run all evals and save results as the new baseline.
+
+    Note: This only runs the synchronous validation eval by default.
+    To include extraction/classification/rag/confidence, run those evals
+    separately and save scores via the baseline module.
+    """
+    from app.eval.validation_eval import ValidationEvaluator
+    from app.eval.baseline import save_baseline
+
+    # Run validation eval (synchronous, no API calls needed)
+    try:
+        val_evaluator = ValidationEvaluator()
+        val_report = val_evaluator.run()
+    except Exception:
+        val_report = None
+
+    baseline = save_baseline(validation_report=val_report)
+    return {"baseline": baseline, "message": "Baseline saved"}
+
+
+@router.post("/baseline/compare")
+async def compare_baseline_endpoint(
+    db: AsyncSession = Depends(get_db),
+):
+    """Run validation eval and compare against saved baseline.
+
+    Returns a regression report highlighting any metrics that dropped
+    below baseline - tolerance (default 2%).
+    """
+    from app.eval.validation_eval import ValidationEvaluator
+    from app.eval.baseline import compare_to_baseline
+
+    # Run validation eval
+    try:
+        val_evaluator = ValidationEvaluator()
+        val_report = val_evaluator.run()
+    except Exception:
+        val_report = None
+
+    regression = compare_to_baseline(validation_report=val_report)
+    return regression.to_dict()

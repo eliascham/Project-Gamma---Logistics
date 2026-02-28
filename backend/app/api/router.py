@@ -1,9 +1,11 @@
 from fastapi import APIRouter
 
 from app.api.v1 import (
+    agent,
     allocations,
     anomalies,
     audit,
+    demo,
     documents,
     eval,
     extractions,
@@ -18,6 +20,8 @@ from app.api.v1 import (
 
 api_router = APIRouter()
 
+api_router.include_router(agent.router, prefix="/v1/agent", tags=["agent"])
+api_router.include_router(demo.router, prefix="/v1/demo", tags=["demo"])
 api_router.include_router(health.router, prefix="/v1", tags=["health"])
 api_router.include_router(documents.router, prefix="/v1/documents", tags=["documents"])
 api_router.include_router(extractions.router, prefix="/v1/extractions", tags=["extractions"])

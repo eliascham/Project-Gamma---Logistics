@@ -1,0 +1,63 @@
+{
+  "document_type": "certificate_of_origin",
+  "extraction": {
+    "certificate_number": "VN-CO-2024-HCM-55219",
+    "issue_date": "2024-10-20",
+    "certificate_type": "Form A",
+    "exporter": {
+      "name": "Saigon Textile Manufacturing JSC",
+      "address": "45 Nguyen Hue Boulevard, District 1",
+      "city": "Ho Chi Minh City",
+      "country": "Vietnam",
+      "tax_id": "0301234567"
+    },
+    "producer": {
+      "name": "Saigon Textile Manufacturing JSC",
+      "address": "45 Nguyen Hue Boulevard, District 1",
+      "city": "Ho Chi Minh City",
+      "country": "Vietnam",
+      "tax_id": "0301234567"
+    },
+    "importer": {
+      "name": "Europa Fashion Group BV",
+      "address": "Keizersgracht 452",
+      "city": "Amsterdam",
+      "country": "Netherlands",
+      "postal_code": "1016 GD",
+      "tax_id": "NL812345678B01"
+    },
+    "country_of_origin": "Vietnam",
+    "country_of_destination": "Netherlands",
+    "transport_details": "By ocean vessel from Ho Chi Minh City to Rotterdam",
+    "invoice_number": "STM-2024-EU-0445",
+    "items": [
+      {
+        "description": "Cotton T-Shirts (Men's)",
+        "hs_code": "6109.10",
+        "quantity": 5000.0,
+        "unit": "pcs",
+        "origin_criterion": "WO",
+        "country_of_origin": "Vietnam"
+      },
+      {
+        "description": "Polyester Blend Trousers",
+        "hs_code": "6204.62",
+        "quantity": 3000.0,
+        "unit": "pcs",
+        "origin_criterion": "P",
+        "country_of_origin": "Vietnam"
+      },
+      {
+        "description": "Silk Scarves",
+        "hs_code": "6214.10",
+        "quantity": 1000.0,
+        "unit": "pcs",
+        "origin_criterion": "WO",
+        "country_of_origin": "Vietnam"
+      }
+    ],
+    "issuing_authority": "Vietnam Chamber of Commerce and Industry (VCCI)",
+    "certifier_name": "Nguyen Van Thanh",
+    "certification_date": "2024-10-20"
+  }
+}

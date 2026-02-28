@@ -1,0 +1,47 @@
+CBP 7501 ENTRY SUMMARY
+
+Entry Number: E12-3456789
+Entry Type: 01 (Consumption Entry)
+Summary Date: November 15, 2024
+Entry Date: November 10, 2024
+
+PORT INFORMATION:
+Port Code: 2704 (Los Angeles / Long Beach)
+Surety Number: 999
+Bond Type: Continuous
+
+TRANSPORT:
+Importing Carrier: MAEU (Maersk Line)
+Mode of Transport: Ocean (10)
+Import Date: November 8, 2024
+
+COUNTRY INFORMATION:
+Country of Origin: China (CN)
+Exporting Country: China (CN)
+
+IMPORTER OF RECORD:
+Importer Number: 94-3456789
+Importer Name: Pacific Electronics Inc.
+
+ULTIMATE CONSIGNEE:
+Consignee Number: 94-3456789
+Consignee Name: Pacific Electronics Inc.
+
+TRANSPORT DOCUMENT:
+Bill of Lading: MAEU-SH2024110247
+
+ENTRY SUMMARY LINE ITEMS
+Line,HTS Number,Description,Country,Quantity,Unit,Entered Value,Duty Rate,Duty Amount,AD/CVD Rate,AD/CVD Amount
+1,8534.00.0040,Printed circuit board assemblies,China,500,pcs,6250.00,0.0%,0.00,,
+2,8531.20.0040,LED display modules 7-inch,China,200,pcs,5600.00,3.9%,218.40,,
+
+TOTALS:
+Total Entered Value: $11,850.00
+Total Duty: $218.40
+Total Tax: $0.00
+Total Other: $59.25
+  Merchandise Processing Fee (MPF): $28.14
+  Harbor Maintenance Fee (HMF): $31.11
+Total Amount Due: $277.65
+
+Notes: Entry filed by Pacific Electronics licensed customs broker. All goods subject to FDA and FCC inspection requirements. No AD/CVD orders applicable.

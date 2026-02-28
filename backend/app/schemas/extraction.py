@@ -560,3 +560,9 @@ class ExtractionResponse(BaseModel):
     model_used: str
     processing_time_ms: int | None = None
     confidence_notes: str | None = None
+    field_confidences: dict[str, float] | None = None
+    overall_confidence: float | None = None
+    validation_passed: bool | None = None
+    validation_errors: int | None = None
+    validation_warnings: int | None = None
+    validation_issues: list[dict] | None = None

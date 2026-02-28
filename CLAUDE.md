@@ -18,7 +18,7 @@ docker exec gamma-backend alembic upgrade head
 curl -X POST http://localhost:8000/api/v1/documents -F "file=@test.csv"
 curl -X POST http://localhost:8000/api/v1/extractions/{document_id}
 
-# Run eval suite
+# Run eval suite (extraction, classification, validation, confidence, rag)
 curl -X POST http://localhost:8000/api/v1/eval/run
 
 # Seed cost allocation rules
@@ -45,8 +45,16 @@ curl -X POST http://localhost:8000/api/v1/reconciliation/run -H "Content-Type: a
 # Run MCP server (for Claude Desktop)
 cd backend && python -m app.mcp_server
 
-# Run RAG eval
+# Run eval types: extraction (default), classification, validation, confidence, rag
 curl -X POST "http://localhost:8000/api/v1/eval/run?eval_type=rag"
+curl -X POST "http://localhost:8000/api/v1/eval/run?eval_type=classification"
+curl -X POST "http://localhost:8000/api/v1/eval/run?eval_type=validation"
+curl -X POST "http://localhost:8000/api/v1/eval/run?eval_type=confidence"
+
+# Regression baseline: save, view, compare
+curl -X POST http://localhost:8000/api/v1/eval/baseline/save
+curl http://localhost:8000/api/v1/eval/baseline
+curl -X POST http://localhost:8000/api/v1/eval/baseline/compare
 
 # Run 3-way PO-BOL-Invoice matching
 curl -X POST http://localhost:8000/api/v1/matching/run -H "Content-Type: application/json" -d '{"po_document_id": "...", "invoice_document_id": "..."}'
@@ -56,6 +64,28 @@ curl -X POST http://localhost:8000/api/v1/relationships/detect/{document_id}
 
 # List document relationships
 curl http://localhost:8000/api/v1/relationships/?document_id={document_id}
+
+# Run the invoice processing agent
+curl -X POST http://localhost:8000/api/v1/agent/run -H "Content-Type: application/json" -d '{"goal": "Process invoice document {document_id}", "document_id": "..."}'
+
+# Run a sub-agent (extraction, reconciliation, or audit)
+curl -X POST http://localhost:8000/api/v1/agent/sub-agent -H "Content-Type: application/json" -d '{"agent_type": "reconciliation", "goal": "Reconcile invoice", "document_id": "..."}'
+
+# Run a skill
+curl -X POST http://localhost:8000/api/v1/agent/skills/process-invoice -H "Content-Type: application/json" -d '{"document_id": "..."}'
+
+# List available agents and skills
+curl http://localhost:8000/api/v1/agent/agents
+curl http://localhost:8000/api/v1/agent/skills
+
+# Run MCP server with SSE transport (for HTTP clients)
+cd backend && python -m app.mcp_server --sse
+
+# Seed demo invoices (5 scenarios + matching shipments)
+curl -X POST http://localhost:8000/api/v1/demo/seed
+
+# List demo scenarios
+curl http://localhost:8000/api/v1/demo/scenarios
 ```
 
 ## Architecture
@@ -121,11 +151,16 @@ backend/
       retriever.py       # pgvector cosine similarity search
       qa.py              # QAPipeline (retrieve → Claude answers with citations)
       ingest.py          # RAGIngestor (extractions + sample SOPs)
-    eval/                # Extraction + RAG accuracy evaluation
+    eval/                # Comprehensive eval suite (5 evaluators + regression baseline)
       metrics.py         # Field-level accuracy (precision/recall/F1)
-      extraction_eval.py # Eval harness (runs pipeline against ground truth)
-      rag_eval.py        # RAG retrieval quality eval (hit rate, MRR)
-      ground_truth/      # Sample documents + expected JSON outputs
+      extraction_eval.py # Extraction eval (runs pipeline against ground truth)
+      classification_eval.py # Classification eval (Haiku classifier accuracy + confusion matrix)
+      validation_eval.py # Validation eval (7 validators — precision/recall/F1)
+      confidence_eval.py # Confidence calibration eval (ECE, Brier score, calibration bins)
+      rag_eval.py        # RAG retrieval quality eval (hit rate, MRR, negative rejection)
+      baseline.py        # Regression baseline system (save/load/compare with tolerance)
+      baseline.json      # Saved baseline scores (empty until first save)
+      ground_truth/      # 22 doc pairs + 5 validation tests + RAG benchmark JSON
     middleware/logging.py # Structured JSON request logging with request ID
     audit_generator/     # Audit logging + report generation
       service.py         # AuditService (static, append-only log)
@@ -142,32 +177,55 @@ backend/
     reconciliation_engine/ # Cross-system reconciliation
       matchers.py        # Pure matching functions
       service.py         # ReconciliationEngine
+      invoice_reconciler.py # Invoice-to-shipment reconciliation with ranked candidates
     matching_engine/       # Phase 5: 3-way PO-BOL-Invoice matching
       matchers.py        # Pure matching functions (numeric, party name, description, line items)
       service.py         # ThreeWayMatchingService orchestrator
+    validator/             # Deterministic validation layer
+      validators.py      # 7 pure validation functions (required fields, math, totals, dates, currency, amounts, reference numbers)
+      service.py         # ValidationService orchestrator
+      confidence.py      # Per-field confidence scoring (agreement-based + Claude blending)
+    agent/                 # Agentic invoice processing
+      tools.py           # 8 agent tool definitions (Anthropic tool_use format)
+      executor.py        # ToolExecutor — bridges tool calls to backend services
+      orchestrator.py    # Agent loop (tool_use conversation with Claude)
+      sub_agents.py      # Specialized sub-agents (extraction, reconciliation, audit)
+      skills.py          # User-invocable skills (/process-invoice, /review-queue, /reconcile, /extract)
+    demo/                  # Demo data seeding
+      seeder.py          # DemoDataSeeder (5 invoices + 6 shipments, idempotent)
     models/
       document_relationship.py # DocumentRelationship ORM model + RelationshipType enum
     schemas/
+      validation.py      # ValidationIssue, ValidationResult Pydantic models
       document_relationship.py # Pydantic request/response models for relationships
     api/v1/
+      agent.py           # Agent/sub-agent/skill invocation endpoints
+      demo.py            # POST /seed, GET /scenarios — demo data endpoints
       relationships.py   # CRUD + auto-detect endpoints for document relationships
       matching.py        # 3-way matching run + auto-match endpoints
-    mcp_server/          # MCP server for Claude Desktop
-      server.py          # LogisticsMCPServer (4 tools)
-      data_layer.py      # MCPDataLayer (DB queries)
+    mcp_server/          # MCP server for Claude Desktop + SSE transport
+      server.py          # LogisticsMCPServer (9 tools: 4 data + 5 invoice processing)
+      data_layer.py      # MCPDataLayer (DB queries — documents, extractions, shipments, review queue)
       mock_data.py       # MockDataGenerator (deterministic)
-      __main__.py        # Entry point: python -m app.mcp_server
+      __main__.py        # Entry point: python -m app.mcp_server [--sse]
   tests/
     test_cost_allocation.py  # Cost allocation pipeline + rules tests
     test_rag.py              # Chunker, extraction_to_text, QA pipeline tests
     test_audit.py            # AuditService log/query, stats tests
-    test_hitl.py             # HITL state machine, triggers, auto-approve tests
+    test_hitl.py             # HITL state machine, triggers, auto-approve, inline editing, exception tasks tests
     test_anomaly.py          # Pure detector functions, anomaly flagging tests
     test_reconciliation.py   # Matcher functions, reconciliation engine tests
-    test_mcp.py              # MockDataGenerator determinism, data layer tests
+    test_mcp.py              # MockDataGenerator determinism, MCP tools, reconciliation serialization
+    test_validation.py       # 41 tests: 7 validators, ValidationService, confidence scoring
+    test_invoice_reconciler.py # 19 tests: scoring, reconciliation, ranked candidates
+    test_agent.py            # 35 tests: tool defs, executor, orchestrator, sub-agents, skills
     test_phase5_schemas.py   # All 9 new extraction schemas + shared models
     test_phase5_matching.py  # 3-way matching: numeric, party, description, line items, full match
     test_phase5_relationships.py # Document relationship model, schemas, reference maps
+    test_eval_suite.py           # 40 tests: classification, validation, confidence, baseline, RAG evals
+    test_demo.py               # 17 tests: data integrity, seeder idempotency, scenarios
+  docs/
+    vertical-slice-architecture.md  # End-to-end architecture diagram + component details
   alembic/versions/      # 001_initial + 002_doc_intelligence + 003_cost_allocation_rag + 004_guardrails + 005_phase5_doc_relationships
 ```
 
@@ -261,6 +319,8 @@ backend/
 - `GET /api/v1/reviews/queue` — Get review queue (paginated, filterable)
 - `GET /api/v1/reviews/{id}` — Get review item details (enriched: evidence, guidance, suggested actions, related entities)
 - `POST /api/v1/reviews/{id}/action` — Approve/reject/escalate
+- `PATCH /api/v1/reviews/{id}` — Inline field editing (title, description, assigned_to, severity, dollar_amount, metadata)
+- `POST /api/v1/reviews/{id}/exception` — Create exception task from review item
 - `GET /api/v1/reviews/stats` — Review queue statistics
 
 ### Anomaly Detection
@@ -289,6 +349,13 @@ backend/
 - `POST /api/v1/matching/run` — Run 3-way PO-BOL-Invoice matching (provide at least 2 of 3 document IDs)
 - `POST /api/v1/matching/auto/{document_id}` — Auto-detect related documents and run matching
 
+### Agent & Skills
+- `POST /api/v1/agent/run` — Run the main invoice processing agent (tool_use orchestration loop)
+- `POST /api/v1/agent/sub-agent` — Run a specialized sub-agent (extraction, reconciliation, audit)
+- `POST /api/v1/agent/skills/{skill_name}` — Run a user-invocable skill (process-invoice, review-queue, reconcile, extract)
+- `GET /api/v1/agent/agents` — List available agent types + tools
+- `GET /api/v1/agent/skills` — List available skills
+
 ### MCP Server & Data Explorer
 - `GET /api/v1/mcp/status` — MCP server status + available tools
 - `POST /api/v1/mcp/seed` — Seed mock data
@@ -296,10 +363,19 @@ backend/
 - `GET /api/v1/mcp/records` — Browse mock records (filterable by source, record_type, search; paginated)
 - `GET /api/v1/mcp/budgets` — List project budgets
 
+### Demo Data
+- `POST /api/v1/demo/seed` — Seed 5 demo invoices + matching shipments (idempotent)
+- `GET /api/v1/demo/scenarios` — List demo scenarios with document IDs
+
 ### Other
 - `GET /api/v1/health` — Health check
 - `GET /api/v1/metrics` — System metrics (eval, HITL, anomalies)
-- `POST /api/v1/eval/run` — Run eval suite (extraction or RAG via eval_type param)
+- `POST /api/v1/eval/run` — Run eval suite (eval_type: extraction, classification, validation, confidence, rag)
+- `GET /api/v1/eval/results` — List past eval runs
+- `GET /api/v1/eval/results/{id}` — Get detailed eval result
+- `GET /api/v1/eval/baseline` — Get saved baseline scores
+- `POST /api/v1/eval/baseline/save` — Save current scores as regression baseline
+- `POST /api/v1/eval/baseline/compare` — Compare current scores vs baseline (flags >2% drops)
 
 ## Environment Variables (.env)
 
@@ -388,3 +464,25 @@ See `.env.example` for all required variables. Key ones:
 - 3-way matching tolerances are configurable via `MATCH_TOLERANCES` dict in `matching_engine/matchers.py`
 - Document relationship auto-detection searches extraction JSON for reference numbers — uses raw SQL queries against extractions table
 - Phase 5 adds 14 allocation rules total (10 original + 4 new: Import Duties, MPF, HMF, Accessorial)
+- Agent orchestrator uses `tool_use` conversation loop — Claude returns `tool_use` content blocks, executor runs them, results fed back as `tool_result` until Claude returns text-only (done)
+- Agent `ToolExecutor` owns its own `MCPDataLayer` instance — must call `executor.close()` in finally block
+- `AuditService.log_event()` is async and needs DB session + UUID entity_id — not `AuditService.log()`
+- Sub-agents reuse `run_agent()` with different `system_prompt` and `tools` params
+- Skills use goal templates with `{document_id}` placeholder — dispatched to main agent or sub-agent based on `agent_type`
+- MCP server supports both stdio (Claude Desktop) and SSE (HTTP clients) transport — `--sse` flag
+- MCP server has 9 tools total: 4 data query + 5 invoice processing (document, extraction, shipments, reconcile, review queue)
+- Invoice reconciler scoring weights: PO 30%, vendor 25%, amount 25%, date 15%, reference 5%
+- Validation layer has 7 pure functions — no DB/Claude dependency, safe for SQLite tests
+- Per-field confidence uses agreement-based scoring: Pass 1 vs Pass 2 extraction blended with Claude-reported confidence
+- `extractions` table has no ORM model (managed by Alembic in prod) — test conftest creates it manually via raw SQL `CREATE TABLE IF NOT EXISTS extractions`
+- Demo data seeder is idempotent — checks for existing `freight_inv` documents before inserting
+- Demo invoice UUIDs are fixed (`d0000001-000X-4000-a000-...`) for scripting and documentation
+- HITL inline editing: `PATCH /reviews/{id}` only allows updating fields in `EDITABLE_FIELDS` allowlist
+- Exception tasks inherit `entity_id`, `entity_type`, `dollar_amount` from parent review item
+- Reconciliation candidates stored in `review_metadata` JSON — detail view reads them from metadata, no separate DB query
+- 510 tests total: 474 passing, zero regressions from eval suite expansion
+- Eval suite: 5 evaluators (extraction, classification, validation, confidence, RAG) + regression baseline system
+- Ground truth: 22 document pairs (11 types × 2 each) + 5 validation-annotated test files + 20-question RAG benchmark
+- Confidence eval uses agreement-based scoring (Pass 1 vs Pass 2) blended with Claude-reported confidence
+- ValidationEvaluator is synchronous (no API calls); all others are async
+- Baseline tolerance default is 0.02 (2% absolute drop allowed before flagging regression)

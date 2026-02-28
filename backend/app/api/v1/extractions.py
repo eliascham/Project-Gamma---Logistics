@@ -136,6 +136,19 @@ async def extract_document(
     import json as json_module
     from sqlalchemy import text as sa_text
 
+    # Build metadata with confidence + validation data
+    extraction_metadata = {
+        "field_confidences": extraction_result.field_confidences,
+        "overall_confidence": extraction_result.overall_confidence,
+    }
+    if extraction_result.validation:
+        extraction_metadata["validation"] = {
+            "passed": extraction_result.validation.passed,
+            "error_count": extraction_result.validation.error_count,
+            "warning_count": extraction_result.validation.warning_count,
+            "issues": [issue.model_dump() for issue in extraction_result.validation.issues],
+        }
+
     extraction_id = uuid.uuid4()
     await db.execute(
         sa_text("""
@@ -168,7 +181,7 @@ async def extract_document(
             "processing_time_ms": extraction_result.processing_time_ms,
             "page_count": extraction_result.metadata.get("page_count"),
             "vision_used": extraction_result.metadata.get("vision_used", False),
-            "metadata": "{}",
+            "metadata": json_module.dumps(extraction_metadata, default=str),
         },
     )
     await db.flush()
@@ -185,8 +198,17 @@ async def extract_document(
         new_state={
             "document_type": extraction_result.document_type.value,
             "processing_time_ms": extraction_result.processing_time_ms,
+            "overall_confidence": extraction_result.overall_confidence,
+            "validation_passed": extraction_result.validation.passed if extraction_result.validation else None,
         },
     )
+
+    # Build validation issues for response
+    validation_issues = None
+    if extraction_result.validation and extraction_result.validation.issues:
+        validation_issues = [
+            issue.model_dump() for issue in extraction_result.validation.issues
+        ]
 
     return ExtractionResponse(
         document_id=document.id,
@@ -196,4 +218,10 @@ async def extract_document(
         model_used=extraction_result.model_used,
         processing_time_ms=extraction_result.processing_time_ms,
         confidence_notes=None,
+        field_confidences=extraction_result.field_confidences,
+        overall_confidence=extraction_result.overall_confidence,
+        validation_passed=extraction_result.validation.passed if extraction_result.validation else None,
+        validation_errors=extraction_result.validation.error_count if extraction_result.validation else None,
+        validation_warnings=extraction_result.validation.warning_count if extraction_result.validation else None,
+        validation_issues=validation_issues,
     )

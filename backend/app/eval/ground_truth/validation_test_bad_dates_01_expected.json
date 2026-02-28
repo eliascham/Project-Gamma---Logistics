@@ -1,0 +1,21 @@
+{
+  "document_type": "freight_invoice",
+  "extraction": {
+    "invoice_number": "FI-BADDATE-001",
+    "invoice_date": "2030-06-15",
+    "vendor_name": "Test Corp",
+    "total_amount": 1000.00,
+    "subtotal": 1000.00,
+    "tax_amount": 0,
+    "currency": "USD",
+    "line_items": [
+      {"description": "Freight", "quantity": 1, "unit": "lot", "unit_price": 1000.00, "total": 1000.00}
+    ]
+  },
+  "validation_annotations": {
+    "expected_clean": false,
+    "expected_issues": [
+      {"rule": "future_date", "field": "invoice_date"}
+    ]
+  }
+}

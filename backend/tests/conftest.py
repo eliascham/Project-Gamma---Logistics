@@ -4,6 +4,7 @@ import uuid
 
 import pytest
 from httpx import ASGITransport, AsyncClient
+from sqlalchemy import text as sa_text
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
 from app.models.base import Base
@@ -24,9 +25,25 @@ async def test_engine():
     engine = create_async_engine(TEST_DATABASE_URL, echo=False)
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
+        # Create extractions table (no ORM model, managed by Alembic in prod)
+        await conn.execute(sa_text("""
+            CREATE TABLE IF NOT EXISTS extractions (
+                id TEXT PRIMARY KEY,
+                document_id TEXT NOT NULL,
+                document_type TEXT,
+                extraction_data TEXT,
+                raw_extraction TEXT,
+                refined_extraction TEXT,
+                model_used TEXT,
+                processing_time_ms INTEGER,
+                metadata TEXT,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        """))
     yield engine
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.drop_all)
+        await conn.execute(sa_text("DROP TABLE IF EXISTS extractions"))
     await engine.dispose()
     # Clean up test db file
     if os.path.exists("./test.db"):

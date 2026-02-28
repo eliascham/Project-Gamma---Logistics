@@ -5,8 +5,10 @@ Flow:
   1. Parse document → text + images
   2. Classify document type (Haiku)
   3. Pass 1: Extract raw data (Sonnet)
-  4. Pass 2: Self-review and refine (Sonnet)
-  5. Return final extraction + metadata
+  4. Pass 2: Self-review, refine, and score confidence (Sonnet)
+  5. Deterministic validation
+  6. Compute blended field-level confidence
+  7. Return final extraction + confidence + validation
 """
 
 import logging
@@ -19,7 +21,14 @@ from app.config import Settings
 from app.document_extractor.classifier import DocumentClassifier
 from app.document_extractor.parser import DocumentParser, ParsedDocument
 from app.schemas.extraction import DocumentType
+from app.schemas.validation import ValidationResult
 from app.services.claude_service import ClaudeService
+from app.validator.confidence import (
+    blend_confidences,
+    compute_agreement_confidence,
+    compute_overall_confidence,
+)
+from app.validator.service import ValidationService
 
 logger = logging.getLogger("gamma.pipeline")
 
@@ -36,6 +45,9 @@ class ExtractionResult:
     processing_time_ms: int = 0
     parsed_document: ParsedDocument | None = None
     metadata: dict = field(default_factory=dict)
+    field_confidences: dict[str, float] = field(default_factory=dict)
+    overall_confidence: float = 0.0
+    validation: ValidationResult | None = None
 
 
 class ExtractionPipeline:
@@ -102,15 +114,39 @@ class ExtractionPipeline:
         )
         logger.info("Pass 1 complete")
 
-        # Step 4: Pass 2 — Review and refine
-        logger.info("Pass 2: Reviewing and refining extraction...")
-        refined_extraction = await self.claude_service.review_extraction(
-            doc_type=doc_type,
-            raw_extraction=raw_extraction,
-            text=parsed.text,
-            images=parsed.images or None,
+        # Step 4: Pass 2 — Review, refine, and score confidence
+        logger.info("Pass 2: Reviewing, refining, and scoring confidence...")
+        refined_extraction, claude_confidences = (
+            await self.claude_service.review_extraction(
+                doc_type=doc_type,
+                raw_extraction=raw_extraction,
+                text=parsed.text,
+                images=parsed.images or None,
+            )
         )
         logger.info("Pass 2 complete")
+
+        # Step 5: Compute blended field-level confidence
+        agreement_scores = compute_agreement_confidence(
+            raw_extraction, refined_extraction
+        )
+        field_confidences = blend_confidences(agreement_scores, claude_confidences)
+        overall_confidence = compute_overall_confidence(field_confidences)
+        logger.info(
+            "Confidence: overall=%.3f, fields=%d, claude_reported=%s",
+            overall_confidence,
+            len(field_confidences),
+            claude_confidences is not None,
+        )
+
+        # Step 6: Deterministic validation
+        validation = ValidationService.validate(refined_extraction, doc_type)
+        logger.info(
+            "Validation: passed=%s, errors=%d, warnings=%d",
+            validation.passed,
+            validation.error_count,
+            validation.warning_count,
+        )
 
         elapsed_ms = int((time.monotonic() - start_time) * 1000)
 
@@ -129,4 +165,7 @@ class ExtractionPipeline:
                 "image_count": len(parsed.images),
                 **parsed.metadata,
             },
+            field_confidences=field_confidences,
+            overall_confidence=overall_confidence,
+            validation=validation,
         )

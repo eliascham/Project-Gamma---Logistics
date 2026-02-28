@@ -1,0 +1,52 @@
+{
+  "document_type": "arrival_notice",
+  "extraction": {
+    "notice_number": "AN-2024-JFK-12055",
+    "notice_date": "2024-12-01",
+    "carrier": {
+      "name": "Korean Air Cargo",
+      "address": "1350 Port Access Road, Cargo Terminal Building 71",
+      "city": "Jamaica",
+      "state": "NY",
+      "country": "USA",
+      "postal_code": "11430"
+    },
+    "shipper": null,
+    "consignee": {
+      "name": "Northeast Pharma Distribution",
+      "address": "500 Gateway Industrial Park",
+      "city": "New York",
+      "state": "NY",
+      "country": "USA",
+      "postal_code": "10001"
+    },
+    "notify_party": null,
+    "bol_number": null,
+    "booking_number": "BK-KAL-20241128",
+    "vessel_name": null,
+    "voyage_number": null,
+    "port_of_loading": "Incheon, South Korea",
+    "port_of_discharge": "JFK, New York, USA",
+    "place_of_delivery": null,
+    "eta": "2024-12-02",
+    "ata": "2024-12-02",
+    "container_numbers": [],
+    "cargo_description": "Pharmaceutical raw materials",
+    "package_count": 25,
+    "gross_weight": 1800.0,
+    "weight_unit": "kg",
+    "volume": 8.5,
+    "volume_unit": "CBM",
+    "freight_terms": "prepaid",
+    "charges": [
+      {"charge_type": "Air Freight", "amount": 3100.0, "currency": "USD"},
+      {"charge_type": "Handling", "amount": 200.0, "currency": "USD"}
+    ],
+    "total_charges": 3300.0,
+    "currency": "USD",
+    "free_time_days": 3,
+    "last_free_day": "2024-12-05",
+    "documents_required": ["Original AWB", "Commercial Invoice", "FDA Import Filing"],
+    "notes": "Temperature-controlled cargo. Maintain 2-8 degrees Celsius. Priority customs clearance recommended due to perishable nature of pharmaceutical materials."
+  }
+}

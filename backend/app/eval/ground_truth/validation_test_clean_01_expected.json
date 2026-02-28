@@ -1,0 +1,20 @@
+{
+  "document_type": "freight_invoice",
+  "extraction": {
+    "invoice_number": "FI-CLEAN-001",
+    "invoice_date": "2024-08-15",
+    "vendor_name": "Clean Logistics Corp",
+    "total_amount": 3500.00,
+    "subtotal": 3500.00,
+    "tax_amount": 0,
+    "currency": "USD",
+    "line_items": [
+      {"description": "Ocean Freight", "quantity": 1, "unit": "TEU", "unit_price": 2500.00, "total": 2500.00},
+      {"description": "Documentation Fee", "quantity": 1, "unit": "service", "unit_price": 1000.00, "total": 1000.00}
+    ]
+  },
+  "validation_annotations": {
+    "expected_clean": true,
+    "expected_issues": []
+  }
+}

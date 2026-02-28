@@ -1,0 +1,150 @@
+{
+  "version": "1.0",
+  "benchmark": [
+    {
+      "id": "rag-001",
+      "question": "What GL account is used for ocean freight?",
+      "expected_answer_contains": ["5010", "ocean freight"],
+      "expected_sources": ["gl_account_mapping", "cost_center_guidelines"],
+      "category": "gl_mapping"
+    },
+    {
+      "id": "rag-002",
+      "question": "What is the approval threshold for cost allocations?",
+      "expected_answer_contains": ["85%", "confidence"],
+      "expected_sources": ["invoice_processing"],
+      "category": "process"
+    },
+    {
+      "id": "rag-003",
+      "question": "How should customs duties be allocated?",
+      "expected_answer_contains": ["customs", "5020"],
+      "expected_sources": ["gl_account_mapping", "cost_center_guidelines"],
+      "category": "gl_mapping"
+    },
+    {
+      "id": "rag-004",
+      "question": "What is the process for handling freight invoices?",
+      "expected_answer_contains": ["invoice", "extract"],
+      "expected_sources": ["invoice_processing"],
+      "category": "process"
+    },
+    {
+      "id": "rag-005",
+      "question": "Which cost center handles domestic transportation?",
+      "expected_answer_contains": ["domestic", "cost center"],
+      "expected_sources": ["cost_center_guidelines"],
+      "category": "cost_center"
+    },
+    {
+      "id": "rag-006",
+      "question": "What GL account is used for warehousing charges?",
+      "expected_answer_contains": ["5040", "warehouse"],
+      "expected_sources": ["gl_account_mapping"],
+      "category": "gl_mapping"
+    },
+    {
+      "id": "rag-007",
+      "question": "How are drayage charges categorized?",
+      "expected_answer_contains": ["drayage", "5030"],
+      "expected_sources": ["gl_account_mapping"],
+      "category": "gl_mapping"
+    },
+    {
+      "id": "rag-008",
+      "question": "What documentation is required for international shipments?",
+      "expected_answer_contains": ["bill of lading", "commercial invoice"],
+      "expected_sources": ["invoice_processing"],
+      "category": "process"
+    },
+    {
+      "id": "rag-009",
+      "question": "What is the review process for high-value allocations?",
+      "expected_answer_contains": ["review", "approval"],
+      "expected_sources": ["invoice_processing", "cost_center_guidelines"],
+      "category": "process"
+    },
+    {
+      "id": "rag-010",
+      "question": "How should insurance charges be recorded?",
+      "expected_answer_contains": ["insurance", "5050"],
+      "expected_sources": ["gl_account_mapping"],
+      "category": "gl_mapping"
+    },
+    {
+      "id": "rag-011",
+      "question": "What cost center should trucking charges be allocated to?",
+      "expected_answer_contains": ["logistics", "trucking"],
+      "expected_sources": ["cost_center_guidelines"],
+      "category": "cost_center"
+    },
+    {
+      "id": "rag-012",
+      "question": "How should demurrage charges be recorded in the GL?",
+      "expected_answer_contains": ["demurrage"],
+      "expected_sources": ["gl_account_mapping"],
+      "category": "gl_mapping"
+    },
+    {
+      "id": "rag-013",
+      "question": "What is the maximum dollar threshold for automatic invoice approval?",
+      "expected_answer_contains": ["approval"],
+      "expected_sources": ["invoice_processing"],
+      "category": "process"
+    },
+    {
+      "id": "rag-014",
+      "question": "How should fuel surcharges be categorized for accounting?",
+      "expected_answer_contains": ["fuel", "surcharge"],
+      "expected_sources": ["gl_account_mapping", "cost_center_guidelines"],
+      "category": "gl_mapping"
+    },
+    {
+      "id": "rag-015",
+      "question": "What is the escalation process for allocation discrepancies?",
+      "expected_answer_contains": ["review", "escalat"],
+      "expected_sources": ["invoice_processing", "cost_center_guidelines"],
+      "category": "process"
+    },
+    {
+      "id": "rag-neg-001",
+      "question": "What is the current EUR to USD exchange rate?",
+      "expected_answer_contains": [],
+      "expected_sources": [],
+      "category": "negative",
+      "is_negative": true
+    },
+    {
+      "id": "rag-neg-002",
+      "question": "Who is the CEO of Maersk?",
+      "expected_answer_contains": [],
+      "expected_sources": [],
+      "category": "negative",
+      "is_negative": true
+    },
+    {
+      "id": "rag-neg-003",
+      "question": "What is the weather forecast for Long Beach port?",
+      "expected_answer_contains": [],
+      "expected_sources": [],
+      "category": "negative",
+      "is_negative": true
+    },
+    {
+      "id": "rag-neg-004",
+      "question": "How do I file a tax return?",
+      "expected_answer_contains": [],
+      "expected_sources": [],
+      "category": "negative",
+      "is_negative": true
+    },
+    {
+      "id": "rag-neg-005",
+      "question": "What programming language is the backend written in?",
+      "expected_answer_contains": [],
+      "expected_sources": [],
+      "category": "negative",
+      "is_negative": true
+    }
+  ]
+}

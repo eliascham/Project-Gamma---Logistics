@@ -44,6 +44,17 @@ class SuggestedAction(BaseModel):
     variant: str  # success, danger, warning
 
 
+class ReconciliationCandidateResponse(BaseModel):
+    """A ranked reconciliation candidate for reviewer comparison."""
+    shipment_id: str
+    shipment_ref: str | None = None
+    match_score: float
+    status: str  # strong_match, likely_match, weak_match, no_match
+    match_reasons: list[str] = Field(default_factory=list)
+    diffs: list[dict] = Field(default_factory=list)
+    has_diffs: bool = False
+
+
 class ReviewContext(BaseModel):
     """Rich context fetched from related entities."""
     anomaly_type: str | None = None
@@ -55,6 +66,10 @@ class ReviewContext(BaseModel):
     evidence: list[EvidenceItem] = Field(default_factory=list)
     suggested_actions: list[SuggestedAction] = Field(default_factory=list)
     guidance: str | None = None
+    reconciliation_candidates: list[ReconciliationCandidateResponse] = Field(
+        default_factory=list,
+        description="Ranked reconciliation candidates when this review is for an invoice match",
+    )
 
 
 class ReviewItemDetailResponse(ReviewItemResponse):
@@ -74,6 +89,26 @@ class ReviewActionRequest(BaseModel):
     action: str = Field(..., description="approve, reject, or escalate")
     notes: str | None = None
     reviewed_by: str = "user"
+
+
+class ReviewFieldUpdateRequest(BaseModel):
+    """Request to update editable fields on a review item."""
+    title: str | None = None
+    description: str | None = None
+    assigned_to: str | None = None
+    severity: str | None = None
+    dollar_amount: float | None = None
+    review_metadata: dict | None = None
+    updated_by: str = "user"
+
+
+class ExceptionTaskRequest(BaseModel):
+    """Request to create an exception task from a review item."""
+    title: str = Field(..., description="Exception task title")
+    description: str | None = Field(None, description="What needs to be investigated")
+    assigned_to: str | None = Field(None, description="Person/team to assign to")
+    severity: str = Field("medium", description="low, medium, high, critical")
+    created_by: str = "user"
 
 
 class ReviewQueueStats(BaseModel):

@@ -32,15 +32,28 @@ REVIEW_SYSTEM_PROMPT = """You are a logistics document extraction quality review
 1. The original document content
 2. A first-pass extraction result (JSON)
 
-Your job is to review the extraction for accuracy and correct any errors. Common issues:
-- Misread numbers (transposed digits, decimal errors)
-- Wrong dates or date formats
-- Line item totals that don't match quantity x unit_price
-- Missing fields that are actually present in the document
-- Incorrect party assignments (shipper vs consignee)
+Your job is to:
+1. Review the extraction for accuracy and correct any errors. Common issues:
+   - Misread numbers (transposed digits, decimal errors)
+   - Wrong dates or date formats
+   - Line item totals that don't match quantity x unit_price
+   - Missing fields that are actually present in the document
+   - Incorrect party assignments (shipper vs consignee)
 
-Output the corrected JSON extraction. If the original extraction is correct, return it unchanged.
-Respond with valid JSON only, no additional text."""
+2. Score your confidence (0.0 to 1.0) for each top-level field:
+   - 0.95-1.0: clearly visible in document, unambiguous
+   - 0.8-0.94: present but slightly ambiguous (e.g., handwriting, partial text)
+   - 0.6-0.79: inferred or uncertain
+   - below 0.6: guessed or very uncertain
+
+Respond with valid JSON in this exact structure:
+{
+  "extraction": { ... the corrected extraction JSON ... },
+  "field_confidences": { "field_name": 0.95, "other_field": 0.8, ... }
+}
+
+Include ONLY top-level field names in field_confidences (not nested paths).
+If the original extraction is correct, return it unchanged in the "extraction" key."""
 
 # --- JSON Schema Templates ---
 # Maps DocumentType to a JSON template string that guides Claude's extraction.
@@ -446,7 +459,7 @@ class ClaudeService:
         raw_extraction: dict,
         text: str = "",
         images: list[dict] | None = None,
-    ) -> dict:
+    ) -> tuple[dict, dict[str, float] | None]:
         """Review and refine a first-pass extraction (Pass 2).
 
         Args:
@@ -456,13 +469,14 @@ class ClaudeService:
             images: Original document images.
 
         Returns:
-            Refined extraction as a dict.
+            Tuple of (refined_extraction_dict, field_confidences_dict_or_None).
         """
         review_prompt = (
             f"Original document content:\n\n{text}\n\n"
             f"First-pass extraction result:\n\n{json.dumps(raw_extraction, indent=2, default=str)}\n\n"
             "Review the extraction above against the original document. "
-            "Correct any errors and return the final JSON."
+            "Correct any errors and score your confidence per field. "
+            'Return JSON with "extraction" and "field_confidences" keys.'
         )
 
         content = _build_content(images=images, extra_text=review_prompt)
@@ -475,7 +489,18 @@ class ClaudeService:
         )
 
         result = _parse_json_response(message.content[0].text)
-        return _validate_extraction(doc_type, result)
+
+        # Parse composite response: {extraction: ..., field_confidences: ...}
+        field_confidences: dict[str, float] | None = None
+        if "extraction" in result and isinstance(result["extraction"], dict):
+            field_confidences = result.get("field_confidences")
+            extraction_data = result["extraction"]
+        else:
+            # Fallback: Claude returned just the extraction (old format)
+            extraction_data = result
+
+        validated = _validate_extraction(doc_type, extraction_data)
+        return validated, field_confidences
 
     # Legacy method for backward compatibility with Phase 1 tests
     async def extract_freight_invoice(

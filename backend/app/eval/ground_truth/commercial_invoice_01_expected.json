@@ -1,0 +1,67 @@
+{
+  "document_type": "commercial_invoice",
+  "extraction": {
+    "invoice_number": "CI-2024-08815",
+    "invoice_date": "2024-10-15",
+    "seller": {
+      "name": "Shenzhen TechParts Co., Ltd",
+      "address": "Building 12, Nanshan Science Park",
+      "city": "Shenzhen",
+      "state": "Guangdong",
+      "country": "China",
+      "postal_code": "518057",
+      "tax_id": "91440300MA5FPKXY2T"
+    },
+    "buyer": {
+      "name": "Pacific Electronics Inc.",
+      "address": "4500 Technology Drive",
+      "city": "San Jose",
+      "state": "CA",
+      "country": "USA",
+      "postal_code": "95134",
+      "tax_id": "94-3456789"
+    },
+    "country_of_origin": "China",
+    "currency": "USD",
+    "incoterms": "CIF",
+    "incoterms_location": "Los Angeles",
+    "payment_terms": "Net 60",
+    "transport_reference": "BOL-MAEU-20241010",
+    "vessel_or_flight": "Cosco Pacific",
+    "export_reason": "Sale",
+    "line_items": [
+      {
+        "item_number": "PCB-3201",
+        "description": "PCB Assembly Board",
+        "hs_code": "8534.00.00",
+        "quantity": 500.0,
+        "unit": "pcs",
+        "unit_price": 12.50,
+        "total": 6250.0
+      },
+      {
+        "item_number": "LED-7044",
+        "description": "LED Display Module",
+        "hs_code": "8541.40.20",
+        "quantity": 200.0,
+        "unit": "pcs",
+        "unit_price": 28.0,
+        "total": 5600.0
+      },
+      {
+        "item_number": "PSU-1190",
+        "description": "Power Supply Unit",
+        "hs_code": "8504.40.85",
+        "quantity": 300.0,
+        "unit": "pcs",
+        "unit_price": 8.75,
+        "total": 2625.0
+      }
+    ],
+    "subtotal": 14475.0,
+    "freight_charges": 1850.0,
+    "insurance_charges": 145.0,
+    "total_amount": 16470.0,
+    "notes": "Goods manufactured in Shenzhen, China. All items new and unused. Packed in anti-static packaging per buyer specification."
+  }
+}

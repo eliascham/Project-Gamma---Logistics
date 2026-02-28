@@ -1,0 +1,62 @@
+{
+  "document_type": "arrival_notice",
+  "extraction": {
+    "notice_number": "AN-2024-LB-08832",
+    "notice_date": "2024-11-20",
+    "carrier": {
+      "name": "Hyundai Merchant Marine"
+    },
+    "shipper": {
+      "name": "Guangzhou Manufacturing Ltd",
+      "address": "28 Huangpu Industrial Road",
+      "city": "Guangzhou",
+      "state": "Guangdong",
+      "country": "China",
+      "postal_code": "510700"
+    },
+    "consignee": {
+      "name": "Pacific Coast Imports LLC",
+      "address": "3400 Pier J Avenue",
+      "city": "Long Beach",
+      "state": "CA",
+      "country": "USA",
+      "postal_code": "90802"
+    },
+    "notify_party": {
+      "name": "Pacific Coast Imports LLC",
+      "address": "3400 Pier J Avenue",
+      "city": "Long Beach",
+      "state": "CA",
+      "country": "USA",
+      "postal_code": "90802"
+    },
+    "bol_number": "HDMU-GZ2024101588",
+    "booking_number": "BK-HMM-20241001",
+    "vessel_name": "Hyundai Forward",
+    "voyage_number": "045E",
+    "port_of_loading": "Guangzhou, China",
+    "port_of_discharge": "Long Beach, CA, USA",
+    "place_of_delivery": null,
+    "eta": "2024-12-05",
+    "ata": null,
+    "container_numbers": ["HDMU6543210", "HDMU6543211"],
+    "cargo_description": "Furniture and home decor items",
+    "package_count": 180,
+    "gross_weight": 8500.0,
+    "weight_unit": "kg",
+    "volume": 42.0,
+    "volume_unit": "CBM",
+    "freight_terms": "collect",
+    "charges": [
+      {"charge_type": "Ocean Freight", "amount": 4200.0, "currency": "USD"},
+      {"charge_type": "Terminal Handling", "amount": 350.0, "currency": "USD"},
+      {"charge_type": "Documentation Fee", "amount": 75.0, "currency": "USD"}
+    ],
+    "total_charges": 4625.0,
+    "currency": "USD",
+    "free_time_days": 5,
+    "last_free_day": "2024-12-10",
+    "documents_required": ["Original BOL", "Commercial Invoice", "Packing List"],
+    "notes": "Please arrange customs clearance and pickup within free time to avoid demurrage charges. Contact port operations at (562) 555-0147 for container availability."
+  }
+}

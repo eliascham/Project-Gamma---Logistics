@@ -1,0 +1,53 @@
+{
+  "document_type": "commercial_invoice",
+  "extraction": {
+    "invoice_number": "CI-EU-2024-03392",
+    "invoice_date": "2024-11-15",
+    "seller": {
+      "name": "Müller Automotive GmbH",
+      "address": "Industriestrasse 45",
+      "city": "Stuttgart",
+      "country": "Germany",
+      "postal_code": "70569",
+      "tax_id": "DE812345678"
+    },
+    "buyer": {
+      "name": "AutoParts Canada Inc.",
+      "address": "2200 Lakeshore Boulevard West",
+      "city": "Toronto",
+      "state": "ON",
+      "country": "Canada",
+      "postal_code": "M8V 1A4"
+    },
+    "country_of_origin": "Germany",
+    "currency": "EUR",
+    "incoterms": "EXW",
+    "incoterms_location": "Stuttgart",
+    "payment_terms": "Net 45",
+    "export_reason": "Sale",
+    "line_items": [
+      {
+        "item_number": "1",
+        "description": "Brake Disc Assembly",
+        "hs_code": "8708.30.50",
+        "quantity": 120.0,
+        "unit": "pcs",
+        "unit_price": 45.0,
+        "total": 5400.0
+      },
+      {
+        "item_number": "2",
+        "description": "Suspension Spring Kit",
+        "hs_code": "7320.20.50",
+        "quantity": 80.0,
+        "unit": "set",
+        "unit_price": 32.5,
+        "total": 2600.0
+      }
+    ],
+    "subtotal": 8000.0,
+    "tax_amount": 1520.0,
+    "total_amount": 9520.0,
+    "notes": "All goods manufactured in Stuttgart facility. CE marked and compliant with UNECE R90 (brake components)."
+  }
+}

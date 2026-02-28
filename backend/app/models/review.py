@@ -32,6 +32,7 @@ class ReviewItemType(str, enum.Enum):
     COST_ALLOCATION = "cost_allocation"
     ANOMALY = "anomaly"
     RECONCILIATION_MISMATCH = "reconciliation_mismatch"
+    EXCEPTION_TASK = "exception_task"
 
 
 class ReviewItem(Base):

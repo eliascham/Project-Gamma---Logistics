@@ -1,0 +1,62 @@
+{
+  "document_type": "proof_of_delivery",
+  "extraction": {
+    "pod_number": "POD-2024-ATL-78832",
+    "delivery_date": "2024-12-03",
+    "delivery_time": "09:15",
+    "carrier_name": "FedEx Freight",
+    "driver_name": "Kevin Thompson",
+    "shipper": {
+      "name": "Industrial Components Worldwide Inc.",
+      "address": "2200 Manufacturing Drive",
+      "city": "Charlotte",
+      "state": "NC",
+      "country": "USA",
+      "postal_code": "28208"
+    },
+    "consignee": {
+      "name": "Atlanta Manufacturing Corp",
+      "address": "5500 Peachtree Industrial Blvd",
+      "city": "Atlanta",
+      "state": "GA",
+      "country": "USA",
+      "postal_code": "30341"
+    },
+    "delivery_address": "5500 Peachtree Industrial Blvd, Atlanta, GA 30341",
+    "bol_number": "FXF-2024-992145",
+    "order_number": "PO-2024-ATL-3390",
+    "tracking_number": "FXF794644790025",
+    "items": [
+      {
+        "description": "Industrial Motor Assembly",
+        "quantity_expected": 5.0,
+        "quantity_delivered": 5.0,
+        "unit": "pcs",
+        "condition": "good"
+      },
+      {
+        "description": "Control Panel Unit",
+        "quantity_expected": 3.0,
+        "quantity_delivered": 2.0,
+        "unit": "pcs",
+        "condition": "damaged",
+        "notes": "1 unit water damage - refused"
+      },
+      {
+        "description": "Sensor Array Kit",
+        "quantity_expected": 10.0,
+        "quantity_delivered": 10.0,
+        "unit": "pcs",
+        "condition": "good"
+      }
+    ],
+    "total_packages": 17,
+    "total_weight": 890.0,
+    "weight_unit": "kg",
+    "receiver_name": "Robert Chen",
+    "receiver_signature": true,
+    "condition": "damaged",
+    "condition_notes": "1 control panel unit refused due to visible water damage on packaging. Photos taken. Carrier notified.",
+    "has_photo": true
+  }
+}

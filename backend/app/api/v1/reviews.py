@@ -13,8 +13,11 @@ from app.models.anomaly import AnomalyFlag, AnomalySeverity, AnomalyType
 from app.models.review import ReviewItem, ReviewItemType, ReviewStatus
 from app.schemas.review import (
     EvidenceItem,
+    ExceptionTaskRequest,
+    ReconciliationCandidateResponse,
     ReviewActionRequest,
     ReviewContext,
+    ReviewFieldUpdateRequest,
     ReviewItemDetailResponse,
     ReviewItemListResponse,
     ReviewItemResponse,
@@ -85,6 +88,59 @@ async def review_action(
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
     return _item_to_response(item)
+
+
+@router.patch("/{item_id}", response_model=ReviewItemDetailResponse)
+async def update_review_fields(
+    item_id: uuid.UUID,
+    request: ReviewFieldUpdateRequest,
+    db: AsyncSession = Depends(get_db),
+    hitl: HITLService = Depends(get_hitl_service),
+) -> ReviewItemDetailResponse:
+    """Update editable fields on a review item (inline editing)."""
+    update_kwargs = {}
+    for field in ("title", "description", "assigned_to", "severity", "dollar_amount", "review_metadata"):
+        val = getattr(request, field, None)
+        if val is not None:
+            update_kwargs[field] = val
+
+    try:
+        item = await hitl.update_fields(
+            db, item_id, updated_by=request.updated_by, **update_kwargs,
+        )
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+
+    context = await _build_context(db, item)
+    return _item_to_detail_response(item, context)
+
+
+@router.post("/{item_id}/exception", response_model=ReviewItemResponse)
+async def create_exception_task(
+    item_id: uuid.UUID,
+    request: ExceptionTaskRequest,
+    db: AsyncSession = Depends(get_db),
+    hitl: HITLService = Depends(get_hitl_service),
+) -> ReviewItemResponse:
+    """Create an exception task from a review item.
+
+    Use this when a reviewer identifies something that needs further
+    investigation or follow-up action separate from the original review.
+    """
+    try:
+        task = await hitl.create_exception_task(
+            db,
+            parent_id=item_id,
+            title=request.title,
+            description=request.description,
+            assigned_to=request.assigned_to,
+            severity=request.severity,
+            created_by=request.created_by,
+        )
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+
+    return _item_to_response(task)
 
 
 # ── Suggested actions per anomaly type ──
@@ -190,6 +246,26 @@ _SUGGESTED_ACTIONS: dict[str, list[SuggestedAction]] = {
             variant="warning",
         ),
     ],
+    "invoice_reconciliation": [
+        SuggestedAction(
+            label="Match Confirmed",
+            action="approve",
+            notes="Reviewed reconciliation candidates — best match is correct, approved for payment.",
+            variant="success",
+        ),
+        SuggestedAction(
+            label="No Valid Match",
+            action="reject",
+            notes="Rejected — none of the candidate shipments are a valid match for this invoice.",
+            variant="danger",
+        ),
+        SuggestedAction(
+            label="Create Exception",
+            action="escalate",
+            notes="Escalating — invoice requires manual matching or vendor follow-up.",
+            variant="warning",
+        ),
+    ],
 }
 
 _DEFAULT_ACTIONS = [
@@ -225,6 +301,11 @@ _GUIDANCE: dict[str, str] = {
         "Records from different source systems (TMS, WMS, ERP) don't fully match. "
         "Review the mismatched fields below and determine if the discrepancy is "
         "acceptable (timing, rounding) or requires correction in the source systems."
+    ),
+    "invoice_reconciliation": (
+        "This invoice has been matched against shipment records. Review the ranked "
+        "candidates below — check PO numbers, vendor names, amounts, and dates. "
+        "Confirm the best match is correct or reject if no candidate is valid."
     ),
 }
 
@@ -291,6 +372,26 @@ async def _build_context(db: AsyncSession, item: ReviewItem) -> ReviewContext:
             context.anomaly_type = anomaly_type_str
             context.anomaly_details = rec.mismatch_details
             evidence = _build_reconciliation_evidence(rec)
+
+    # Check review_metadata for reconciliation candidates (stored by agent)
+    metadata = item.review_metadata or {}
+    if "reconciliation_candidates" in metadata:
+        candidates = []
+        for c in metadata["reconciliation_candidates"]:
+            candidates.append(ReconciliationCandidateResponse(
+                shipment_id=c.get("shipment_id", ""),
+                shipment_ref=c.get("shipment_ref"),
+                match_score=c.get("match_score", 0.0),
+                status=c.get("status", "unknown"),
+                match_reasons=c.get("match_reasons", []),
+                diffs=c.get("diffs", []),
+                has_diffs=c.get("has_diffs", False),
+            ))
+        context.reconciliation_candidates = candidates
+        # Use invoice_reconciliation type for guidance/actions if not already set
+        if not anomaly_type_str:
+            anomaly_type_str = "invoice_reconciliation"
+            context.anomaly_type = anomaly_type_str
 
     # Set guidance and suggested actions
     context.evidence = evidence

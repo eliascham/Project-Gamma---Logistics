@@ -1,0 +1,70 @@
+{
+  "document_type": "purchase_order",
+  "extraction": {
+    "po_number": "PO-2024-GM-4471",
+    "po_date": "2024-10-01",
+    "buyer": {
+      "name": "Global Motors Assembly Inc.",
+      "address": "28000 Chrysler Drive",
+      "city": "Detroit",
+      "state": "MI",
+      "country": "USA",
+      "postal_code": "48326"
+    },
+    "supplier": {
+      "name": "Siam Parts Manufacturing Co., Ltd",
+      "address": "99/1 Moo 5, Bangna-Trad Road",
+      "city": "Bangpakong",
+      "state": "Chachoengsao",
+      "country": "Thailand",
+      "postal_code": "24130"
+    },
+    "currency": "USD",
+    "incoterms": "FOB",
+    "incoterms_location": "Bangkok",
+    "delivery_date": "2024-12-15",
+    "shipping_method": "Ocean",
+    "line_items": [
+      {
+        "line_number": 1,
+        "item_number": "RGS-4420",
+        "description": "Rubber Gasket Set",
+        "quantity": 2000.0,
+        "unit": "pcs",
+        "unit_price": 0.85,
+        "total": 1700.0
+      },
+      {
+        "line_number": 2,
+        "item_number": "SMB-1175",
+        "description": "Steel Mounting Bracket",
+        "quantity": 500.0,
+        "unit": "pcs",
+        "unit_price": 4.2,
+        "total": 2100.0
+      },
+      {
+        "line_number": 3,
+        "item_number": "WHA-3308",
+        "description": "Wiring Harness Assembly",
+        "quantity": 300.0,
+        "unit": "pcs",
+        "unit_price": 15.5,
+        "total": 4650.0
+      },
+      {
+        "line_number": 4,
+        "item_number": "PIT-2260",
+        "description": "Plastic Interior Trim Panel",
+        "quantity": 400.0,
+        "unit": "pcs",
+        "unit_price": 8.0,
+        "total": 3200.0
+      }
+    ],
+    "subtotal": 11650.0,
+    "tax_amount": 0.0,
+    "total_amount": 11650.0,
+    "notes": "All parts must meet GM QS-9000 quality standards. Packing per GM Packaging Guidelines Rev. 4. Certificate of compliance required with shipment."
+  }
+}

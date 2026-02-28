@@ -1,0 +1,52 @@
+{
+  "document_type": "purchase_order",
+  "extraction": {
+    "po_number": "PO-2024-08832",
+    "po_date": "2024-09-20",
+    "buyer": {
+      "name": "Midwest Logistics Corp",
+      "address": "8700 Warehouse Row",
+      "city": "Columbus",
+      "state": "OH",
+      "country": "USA",
+      "postal_code": "43219"
+    },
+    "supplier": {
+      "name": "PackRight Solutions Inc.",
+      "address": "1400 Packaging Blvd, Suite 200",
+      "city": "Dallas",
+      "state": "TX",
+      "country": "USA",
+      "postal_code": "75247"
+    },
+    "currency": "USD",
+    "payment_terms": "Net 30",
+    "delivery_date": "2024-10-15",
+    "shipping_method": "Ground",
+    "line_items": [
+      {
+        "line_number": 1,
+        "item_number": "SWF-18",
+        "description": "Stretch Wrap Film 18\"",
+        "quantity": 50.0,
+        "unit": "roll",
+        "unit_price": 35.0,
+        "total": 1750.0
+      },
+      {
+        "line_number": 2,
+        "item_number": "CB-241812",
+        "description": "Corrugated Box 24x18x12",
+        "quantity": 500.0,
+        "unit": "each",
+        "unit_price": 2.85,
+        "total": 1425.0
+      }
+    ],
+    "subtotal": 3175.0,
+    "tax_amount": 254.0,
+    "shipping_amount": 185.0,
+    "total_amount": 3614.0,
+    "notes": "Deliver to Loading Dock B. Call 614-555-0192 for appointment scheduling."
+  }
+}

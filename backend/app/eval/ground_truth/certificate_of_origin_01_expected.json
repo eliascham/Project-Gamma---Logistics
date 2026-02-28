@@ -1,0 +1,59 @@
+{
+  "document_type": "certificate_of_origin",
+  "extraction": {
+    "certificate_number": "USMCA-2024-US-08832",
+    "issue_date": "2024-01-15",
+    "certificate_type": "USMCA",
+    "exporter": {
+      "name": "American Industrial Products Inc.",
+      "address": "4100 West Lake Street",
+      "city": "Chicago",
+      "state": "IL",
+      "country": "USA",
+      "postal_code": "60624",
+      "tax_id": "36-7654321"
+    },
+    "producer": {
+      "name": "American Industrial Products Inc.",
+      "address": "4100 West Lake Street",
+      "city": "Chicago",
+      "state": "IL",
+      "country": "USA",
+      "postal_code": "60624",
+      "tax_id": "36-7654321"
+    },
+    "importer": {
+      "name": "Canadian Equipment Supply Ltd",
+      "address": "2800 Dundas Street West",
+      "city": "Toronto",
+      "state": "ON",
+      "country": "Canada",
+      "postal_code": "M6P 1Y8"
+    },
+    "country_of_origin": "United States",
+    "country_of_destination": "Canada",
+    "invoice_number": "INV-AIP-2024-0088",
+    "items": [
+      {
+        "description": "Industrial Hydraulic Pump",
+        "hs_code": "8413.50",
+        "quantity": 20.0,
+        "unit": "pcs",
+        "origin_criterion": "A",
+        "country_of_origin": "United States"
+      },
+      {
+        "description": "Steel Pressure Vessel",
+        "hs_code": "7311.00",
+        "quantity": 10.0,
+        "unit": "pcs",
+        "origin_criterion": "B",
+        "country_of_origin": "United States"
+      }
+    ],
+    "blanket_period_start": "2024-01-01",
+    "blanket_period_end": "2024-12-31",
+    "certifier_name": "David Mitchell, VP of Operations",
+    "certification_date": "2024-01-15"
+  }
+}

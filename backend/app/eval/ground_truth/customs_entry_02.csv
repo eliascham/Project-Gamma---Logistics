@@ -1,0 +1,53 @@
+CBP 7501 ENTRY SUMMARY
+
+Entry Number: A98-7654321
+Entry Type: 01 (Consumption Entry)
+Summary Date: October 28, 2024
+Entry Date: October 22, 2024
+
+PORT INFORMATION:
+Port Code: 1703 (Savannah, GA)
+Surety Number: 074
+Bond Type: Single Transaction
+
+TRANSPORT:
+Importing Carrier: YMLU (Yang Ming Line)
+Mode of Transport: Ocean (10)
+Import Date: October 20, 2024
+
+COUNTRY INFORMATION:
+Country of Origin: Vietnam (VN)
+Exporting Country: Vietnam (VN)
+
+IMPORTER OF RECORD:
+Importer Number: 58-1234567
+Importer Name: Southern Steel Distributors LLC
+
+ULTIMATE CONSIGNEE:
+Consignee Number: 58-1234567
+Consignee Name: Southern Steel Distributors LLC
+
+TRANSPORT DOCUMENT:
+Bill of Lading: YMLU-HCM2024100388
+
+ENTRY SUMMARY LINE ITEMS
+Line,HTS Number,Description,Country,Quantity,Unit,Entered Value,Duty Rate,Duty Amount,AD/CVD Rate,AD/CVD Amount
+1,7306.30.5028,Welded steel pipe,Vietnam,50000,kg,75000.00,0.0%,0.00,25.76%,19320.00
+2,7307.19.9090,Steel pipe fittings,Vietnam,5000,kg,12500.00,5.0%,625.00,,
+3,7318.15.2065,Steel bolts and fasteners,Vietnam,2000,kg,8000.00,3.4%,272.00,,
+
+*** NOTICE: Line 1 subject to Anti-Dumping Duty Order A-552-826 ***
+AD/CVD Case: A-552-826 (Welded Carbon Steel Pipe from Vietnam)
+AD/CVD Rate: 25.76%
+AD/CVD Amount: $19,320.00
+
+TOTALS:
+Total Entered Value: $95,500.00
+Total Duty: $897.00
+Total Tax: $0.00
+Total Other: $19,367.50
+  Anti-Dumping/Countervailing Duty: $19,320.00
+  Merchandise Processing Fee (MPF): $47.50
+Total Amount Due: $20,264.50
+
+Notes: Line 1 subject to AD order A-552-826. Importer has posted single transaction bond for this entry. All goods require steel import monitoring (SIM) license. CBP may request redelivery for further examination.

@@ -1,0 +1,60 @@
+{
+  "document_type": "debit_credit_note",
+  "extraction": {
+    "note_number": "DN-2024-08877",
+    "note_type": "debit",
+    "note_date": "2024-12-01",
+    "original_invoice_number": "FI-2024-05529",
+    "original_invoice_date": "2024-11-05",
+    "issuer": {
+      "name": "Maersk Line A/S",
+      "address": "Esplanaden 50",
+      "city": "Copenhagen",
+      "country": "Denmark",
+      "postal_code": "1098"
+    },
+    "recipient": {
+      "name": "Sunrise Imports Inc.",
+      "address": "8200 NW 36th Street, Suite 400",
+      "city": "Miami",
+      "state": "FL",
+      "country": "USA",
+      "postal_code": "33166"
+    },
+    "currency": "USD",
+    "reason": "Container detention charges for containers held beyond free time",
+    "line_items": [
+      {
+        "description": "Container MSKU7234561 Detention",
+        "original_amount": null,
+        "adjusted_amount": 2100.0,
+        "difference": null,
+        "quantity": 14.0,
+        "unit": "days",
+        "reason": "Held 14 days past 5-day free time"
+      },
+      {
+        "description": "Container MSKU7234562 Detention",
+        "original_amount": null,
+        "adjusted_amount": 1500.0,
+        "difference": null,
+        "quantity": 10.0,
+        "unit": "days",
+        "reason": "Held 10 days past 5-day free time"
+      },
+      {
+        "description": "Late Documentation Fee",
+        "original_amount": null,
+        "adjusted_amount": 250.0,
+        "difference": null,
+        "quantity": 1.0,
+        "unit": "flat",
+        "reason": "Late customs clearance documentation"
+      }
+    ],
+    "subtotal": 3850.0,
+    "tax_amount": 0.0,
+    "total_amount": 3850.0,
+    "notes": "Detention charges per contract terms. Free time of 5 days was provided starting from vessel discharge date November 10, 2024. Please remit payment to avoid further charges and potential container holds on future shipments."
+  }
+}

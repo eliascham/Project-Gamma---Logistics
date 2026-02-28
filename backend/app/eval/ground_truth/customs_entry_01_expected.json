@@ -1,0 +1,52 @@
+{
+  "document_type": "customs_entry",
+  "extraction": {
+    "entry_number": "E12-3456789",
+    "entry_type": "01",
+    "summary_date": "2024-11-15",
+    "entry_date": "2024-11-10",
+    "port_code": "2704",
+    "surety_number": "999",
+    "bond_type": "Continuous",
+    "importing_carrier": "MAEU",
+    "mode_of_transport": "Ocean",
+    "country_of_origin": "China",
+    "exporting_country": "China",
+    "import_date": "2024-11-08",
+    "importer_number": "94-3456789",
+    "importer_name": "Pacific Electronics Inc.",
+    "consignee_number": "94-3456789",
+    "consignee_name": "Pacific Electronics Inc.",
+    "bol_or_awb": "MAEU-SH2024110247",
+    "line_items": [
+      {
+        "line_number": 1,
+        "hts_number": "8534.00.0040",
+        "description": "Printed circuit board assemblies",
+        "country_of_origin": "China",
+        "quantity": 500.0,
+        "unit": "pcs",
+        "entered_value": 6250.0,
+        "duty_rate": 0.0,
+        "duty_amount": 0.0
+      },
+      {
+        "line_number": 2,
+        "hts_number": "8531.20.0040",
+        "description": "LED display modules 7-inch",
+        "country_of_origin": "China",
+        "quantity": 200.0,
+        "unit": "pcs",
+        "entered_value": 5600.0,
+        "duty_rate": 3.9,
+        "duty_amount": 218.40
+      }
+    ],
+    "total_entered_value": 11850.0,
+    "total_duty": 218.40,
+    "total_tax": 0.0,
+    "total_other": 59.25,
+    "total_amount": 277.65,
+    "notes": "Entry filed by Pacific Electronics licensed customs broker. All goods subject to FDA and FCC inspection requirements. No AD/CVD orders applicable."
+  }
+}

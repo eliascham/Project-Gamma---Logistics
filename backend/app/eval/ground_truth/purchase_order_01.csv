@@ -1,0 +1,31 @@
+PURCHASE ORDER
+
+PO Number: PO-2024-08832
+PO Date: September 20, 2024
+
+BUYER:
+Midwest Logistics Corp
+8700 Warehouse Row
+Columbus, OH 43219, USA
+
+SUPPLIER:
+PackRight Solutions Inc.
+1400 Packaging Blvd, Suite 200
+Dallas, TX 75247, USA
+
+Currency: USD
+Payment Terms: Net 30
+Requested Delivery Date: October 15, 2024
+Shipping Method: Ground
+
+ORDER ITEMS
+Line,Item No,Description,Qty,Unit,Unit Price,Total
+1,SWF-18,Stretch Wrap Film 18",50,roll,35.00,1750.00
+2,CB-241812,Corrugated Box 24x18x12,500,each,2.85,1425.00
+
+Subtotal: $3,175.00
+Tax: $254.00
+Shipping: $185.00
+Total: $3,614.00
+
+Special Instructions: Deliver to Loading Dock B. Call 614-555-0192 for appointment scheduling.

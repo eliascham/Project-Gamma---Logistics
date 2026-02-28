@@ -1,0 +1,59 @@
+{
+  "document_type": "proof_of_delivery",
+  "extraction": {
+    "pod_number": "POD-2024-DFW-45589",
+    "delivery_date": "2024-11-22",
+    "delivery_time": "14:30",
+    "carrier_name": "XPO Logistics",
+    "driver_name": "James Rodriguez",
+    "shipper": {
+      "name": "Midwest Distribution Corp",
+      "address": "7200 Industrial Parkway",
+      "city": "Columbus",
+      "state": "OH",
+      "country": "USA",
+      "postal_code": "43219"
+    },
+    "consignee": {
+      "name": "Dallas Office Solutions Inc.",
+      "address": "8900 Commerce Street",
+      "city": "Dallas",
+      "state": "TX",
+      "country": "USA",
+      "postal_code": "75247"
+    },
+    "delivery_address": "8900 Commerce Street, Dallas, TX 75247",
+    "bol_number": "XPO-2024-887321",
+    "order_number": "SO-2024-44521",
+    "tracking_number": "XPO1Z999AA10012345678",
+    "items": [
+      {
+        "description": "Office Desk Assembly Kit",
+        "quantity_expected": 10.0,
+        "quantity_delivered": 10.0,
+        "unit": "pcs",
+        "condition": "good"
+      },
+      {
+        "description": "Ergonomic Office Chair",
+        "quantity_expected": 25.0,
+        "quantity_delivered": 25.0,
+        "unit": "pcs",
+        "condition": "good"
+      },
+      {
+        "description": "Monitor Stand Riser",
+        "quantity_expected": 50.0,
+        "quantity_delivered": 50.0,
+        "unit": "pcs",
+        "condition": "good"
+      }
+    ],
+    "total_packages": 85,
+    "total_weight": 1250.0,
+    "weight_unit": "kg",
+    "receiver_name": "Maria Santos",
+    "receiver_signature": true,
+    "condition": "good"
+  }
+}

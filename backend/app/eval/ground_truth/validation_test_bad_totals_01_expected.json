@@ -1,0 +1,22 @@
+{
+  "document_type": "commercial_invoice",
+  "extraction": {
+    "invoice_number": "CI-BADTOTAL-001",
+    "invoice_date": "2024-09-20",
+    "currency": "USD",
+    "total_amount": 20000.00,
+    "subtotal": 15000.00,
+    "tax_amount": 0,
+    "freight_charges": 2000.00,
+    "insurance_charges": 150.00,
+    "line_items": [
+      {"description": "Electronics", "quantity": 100, "unit": "pcs", "unit_price": 150.00, "total": 15000.00}
+    ]
+  },
+  "validation_annotations": {
+    "expected_clean": false,
+    "expected_issues": [
+      {"rule": "total_computation", "field": "total_amount"}
+    ]
+  }
+}

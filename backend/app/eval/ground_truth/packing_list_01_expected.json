@@ -1,0 +1,73 @@
+{
+  "document_type": "packing_list",
+  "extraction": {
+    "packing_list_number": "PL-2024-08815",
+    "packing_date": "2024-10-14",
+    "invoice_number": "CI-2024-08815",
+    "po_number": "PO-PAC-2024-3301",
+    "seller": {
+      "name": "Shenzhen TechParts Co., Ltd",
+      "address": "Building 12, Nanshan Science Park",
+      "city": "Shenzhen",
+      "state": "Guangdong",
+      "country": "China",
+      "postal_code": "518057"
+    },
+    "buyer": {
+      "name": "Pacific Electronics Inc.",
+      "address": "4500 Technology Drive",
+      "city": "San Jose",
+      "state": "CA",
+      "country": "USA",
+      "postal_code": "95134"
+    },
+    "ship_from": {
+      "city": "Shenzhen",
+      "country": "China"
+    },
+    "ship_to": {
+      "city": "Los Angeles",
+      "state": "CA",
+      "country": "USA"
+    },
+    "transport_reference": "BOL-MAEU-20241010",
+    "vessel_or_flight": "Cosco Pacific",
+    "container_numbers": ["CSLU7654321", "CSLU7654322"],
+    "items": [
+      {
+        "item_number": "PCB-3201",
+        "description": "PCB Assembly Board",
+        "quantity": 500.0,
+        "package_type": "carton",
+        "package_count": 10,
+        "gross_weight": 250.0,
+        "net_weight": 230.0
+      },
+      {
+        "item_number": "LED-7044",
+        "description": "LED Display Module",
+        "quantity": 200.0,
+        "package_type": "carton",
+        "package_count": 3,
+        "gross_weight": 120.0,
+        "net_weight": 105.0
+      },
+      {
+        "item_number": "PSU-1190",
+        "description": "Power Supply Unit",
+        "quantity": 300.0,
+        "package_type": "carton",
+        "package_count": 2,
+        "gross_weight": 80.0,
+        "net_weight": 72.0
+      }
+    ],
+    "total_packages": 15,
+    "total_gross_weight": 450.0,
+    "total_net_weight": 407.0,
+    "weight_unit": "kg",
+    "total_volume": 4.2,
+    "volume_unit": "CBM",
+    "notes": "All cartons marked with item number and \"FRAGILE - HANDLE WITH CARE\". Anti-static inner packaging used for all electronic components."
+  }
+}
